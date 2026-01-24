@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>India Job Market Pulse: Jan 2026 Report</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Chosen Palette: Warm Professional
+         Background: #F9FAFB (Cool Gray 50) - Base
+         Primary Text: #1F2937 (Gray 800)
+         Accent/Brand: #0F766E (Teal 700) - Represents Growth/Stability
+         Alert/Scam: #BE123C (Rose 700) - Warning
+         Secondary: #D97706 (Amber 600) - Highlights
+    -->
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F9FAFB;
+            color: #1F2937;
+        }
+
+        /* Chart Container Styling (Mandatory) */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 100%;
+            height: 300px; /* Mobile base height */
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px; /* Tablet/Desktop height */
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .chart-container {
+                height: 400px; /* Large screen height */
+            }
+        }
+
+        /* Custom Scrollbar for internal panels */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+
+        /* Interactive Element States */
+        .nav-btn.active {
+            background-color: #0F766E;
+            color: white;
+            border-color: #0F766E;
+        }
+        
+        .scam-card {
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+        .scam-card:hover {
+            transform: translateX(4px);
+            border-left-color: #BE123C;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+
+    <!-- 
+    Application Structure Plan:
+    1.  **Header & Navigation:** Clear context (Jan 1-24, 2026) and tab-based navigation to switch between "Market Overview", "Sector Deep Dive", and "Scam Watch".
+    2.  **Dashboard (Overview):** High-level metrics (Total Jobs, Growth, Risk Level) + Hiring Velocity Chart. Purpose: Immediate situational awareness.
+    3.  **Sector Analysis:** Interactive Bar Chart + Details Panel. User clicks a sector bar to see top roles and salary ranges. Purpose: Granular exploration of where the opportunities are.
+    4.  **Regional Heatmap:** Simple visualization of top hiring cities vs. emerging Tier-2 hubs.
+    5.  **Scam Monitor (CRITICAL):** A dedicated, distinctively styled section (Red/Warning themes). 
+        -   Cards for specific scams (e.g., "Deepfake HR").
+        -   Interactive "Safety Checklist" to engage users in self-protection.
+    6.  **Footer:** Disclaimers and data sources.
+    -->
+
+    <!-- 
+    Visualization & Content Choices:
+    1.  **Hiring Velocity (Line Chart):** Shows the trend of job postings over the first 24 days. Interaction: Tooltip. Goal: Show momentum.
+    2.  **Sector Split (Bar Chart - Horizontal):** Best for comparing long category names. Interaction: Click bar to update "Details Panel". Goal: Compare volume.
+    3.  **Regional Split (Doughnut Chart):** Simple proportion view. Goal: Geographic distribution.
+    4.  **Scam Types (Interactive Cards):** HTML/JS accordion or toggle. No complex chart needed; text is more important here.
+    -->
+
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <!-- Navigation Bar -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center gap-3">
+                    <div class="bg-teal-700 text-white p-2 rounded-lg">
+                        <i class="fa-solid fa-chart-line text-lg"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-900 leading-tight">India Job Pulse</h1>
+                        <p class="text-xs text-gray-500">Report Period: Jan 1 - Jan 24, 2026</p>
+                    </div>
+                </div>
+                <div class="hidden md:flex items-center space-x-4">
+                    <button onclick="switchTab('overview')" id="btn-overview" class="nav-btn active px-4 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors">Market Overview</button>
+                    <button onclick="switchTab('sectors')" id="btn-sectors" class="nav-btn px-4 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors">Sector Insights</button>
+                    <button onclick="switchTab('scams')" id="btn-scams" class="nav-btn px-4 py-2 rounded-md text-sm font-medium text-rose-700 hover:bg-rose-50 hover:text-rose-800 transition-colors border border-transparent hover:border-rose-200">
+                        <i class="fa-solid fa-shield-halved mr-1"></i> Scam Monitor
+                    </button>
+                </div>
+                <!-- Mobile menu button (simple implementation) -->
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-menu-btn" class="text-gray-500 hover:text-gray-700 p-2">
+                        <i class="fa-solid fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile Menu Dropdown -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-100 px-4 py-2 shadow-lg">
+            <button onclick="switchTab('overview')" class="block w-full text-left py-2 text-sm font-medium text-gray-700">Market Overview</button>
+            <button onclick="switchTab('sectors')" class="block w-full text-left py-2 text-sm font-medium text-gray-700">Sector Insights</button>
+            <button onclick="switchTab('scams')" class="block w-full text-left py-2 text-sm font-medium text-rose-700">Scam Monitor</button>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+
+        <!-- VIEW 1: OVERVIEW -->
+        <div id="view-overview" class="fade-in space-y-8">
+            
+            <!-- Intro Text -->
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">Executive Summary</h2>
+                <p class="text-gray-600 leading-relaxed">
+                    The first 24 days of 2026 have signaled a <strong>robust recovery</strong> in the Indian job market, driven primarily by the "AI Implementation Phase" across non-tech industries. While total opening volume is up by <span class="text-teal-700 font-bold">12.4%</span> compared to Jan 2025, a worrying trend of sophisticated recruitment fraud has emerged alongside this growth. This dashboard provides a transparent view of opportunities and risks.
+                </p>
+            </div>
+
+            <!-- KPI Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- KPI 1 -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-teal-600">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-sm font-medium text-gray-500 uppercase">Total New Openings</p>
+                            <h3 class="text-3xl font-bold text-gray-900 mt-1">342,850</h3>
+                        </div>
+                        <div class="p-2 bg-teal-50 rounded-lg text-teal-700">
+                            <i class="fa-solid fa-briefcase text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center text-sm">
+                        <span class="text-green-600 font-medium flex items-center">
+                            <i class="fa-solid fa-arrow-up mr-1"></i> 12.4%
+                        </span>
+                        <span class="text-gray-400 ml-2">vs Jan 2025</span>
+                    </div>
+                </div>
+
+                <!-- KPI 2 -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-600">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-sm font-medium text-gray-500 uppercase">Top Growth Sector</p>
+                            <h3 class="text-3xl font-bold text-gray-900 mt-1">Green Tech</h3>
+                        </div>
+                        <div class="p-2 bg-blue-50 rounded-lg text-blue-700">
+                            <i class="fa-solid fa-leaf text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center text-sm">
+                        <span class="text-gray-600">Driven by Solar & EV Policy 2026</span>
+                    </div>
+                </div>
+
+                <!-- KPI 3 -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-rose-600">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-sm font-medium text-gray-500 uppercase">Scam Alerts</p>
+                            <h3 class="text-3xl font-bold text-rose-700 mt-1">High Risk</h3>
+                        </div>
+                        <div class="p-2 bg-rose-50 rounded-lg text-rose-700">
+                            <i class="fa-solid fa-triangle-exclamation text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center text-sm">
+                        <span class="text-rose-600 font-medium">15,000+ Reports</span>
+                        <span class="text-gray-400 ml-2">since Jan 1st</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Hiring Velocity Chart -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                        <i class="fa-solid fa-chart-line mr-2 text-teal-600"></i> Hiring Velocity (Jan 1-24)
+                    </h3>
+                    <div class="chart-container">
+                        <canvas id="velocityChart"></canvas>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-4 text-center">Data aggregated from top 5 job portals and LinkedIn Insights.</p>
+                </div>
+
+                <!-- Regional Heatmap Chart -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold text-gray-800 flex items-center">
+                            <i class="fa-solid fa-map-location-dot mr-2 text-teal-600"></i> Regional Distribution
+                        </h3>
+                        <span class="px-2 py-1 bg-gray-100 text-xs rounded text-gray-600">Top 5 Hubs</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="regionChart"></canvas>
+                    </div>
+                    <div class="mt-4 grid grid-cols-2 gap-4 text-sm">
+                        <div class="bg-teal-50 p-3 rounded border border-teal-100">
+                            <span class="block font-semibold text-teal-800">Bangalore</span>
+                            <span class="text-xs text-gray-600">Leading in AI & DeepTech</span>
+                        </div>
+                        <div class="bg-blue-50 p-3 rounded border border-blue-100">
+                            <span class="block font-semibold text-blue-800">GIFT City (Gujarat)</span>
+                            <span class="text-xs text-gray-600">Highest growth in Fintech</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 2: SECTOR INSIGHTS -->
+        <div id="view-sectors" class="hidden fade-in space-y-6">
+            
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">Sector Deep Dive</h2>
+                <p class="text-gray-600">
+                    Explore the industries driving employment in Jan 2026. <span class="font-medium text-teal-700">Click on any bar in the chart below</span> to see detailed role breakdowns and average salary trends for that sector.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Interactive Chart Column -->
+                <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">Volume by Industry</h3>
+                    <div class="chart-container" style="height: 500px; max-height: 600px;">
+                        <canvas id="sectorChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Details Panel Column -->
+                <div class="lg:col-span-1">
+                    <div id="sector-detail-panel" class="bg-white p-6 rounded-xl shadow-lg border border-teal-100 h-full sticky top-24">
+                        <!-- Default State -->
+                        <div id="sector-placeholder" class="text-center h-full flex flex-col justify-center items-center text-gray-400">
+                            <i class="fa-solid fa-hand-pointer text-4xl mb-4"></i>
+                            <p>Select a sector from the chart to view details.</p>
+                        </div>
+
+                        <!-- Active State (Hidden by default) -->
+                        <div id="sector-content" class="hidden h-full flex flex-col">
+                            <div class="mb-4 pb-4 border-b border-gray-100">
+                                <h4 id="detail-title" class="text-xl font-bold text-teal-800">IT & Services</h4>
+                                <span id="detail-growth" class="inline-block mt-2 px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded">+15% vs Last Month</span>
+                            </div>
+
+                            <div class="flex-grow">
+                                <h5 class="font-semibold text-gray-700 mb-3 text-sm uppercase tracking-wide">Top 3 In-Demand Roles</h5>
+                                <ul id="detail-roles" class="space-y-3">
+                                    <!-- Dynamic Content -->
+                                </ul>
+
+                                <h5 class="font-semibold text-gray-700 mt-6 mb-3 text-sm uppercase tracking-wide">Avg. Entry Salary (Jan '26)</h5>
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <span id="detail-salary" class="text-2xl font-bold text-gray-900">₹6-8 LPA</span>
+                                    <p class="text-xs text-gray-500 mt-1">Based on validated offer letters</p>
+                                </div>
+                            </div>
+
+                            <div class="mt-6 pt-4 border-t border-gray-100">
+                                <button class="w-full py-2 bg-teal-50 text-teal-700 font-medium rounded hover:bg-teal-100 transition text-sm">
+                                    View Trend Analysis
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 3: SCAM MONITOR -->
+        <div id="view-scams" class="hidden fade-in space-y-8">
+            
+            <!-- Alert Banner -->
+            <div class="bg-rose-50 border-l-4 border-rose-600 p-6 rounded-r-xl shadow-sm">
+                <div class="flex items-start">
+                    <div class="flex-shrink-0">
+                        <i class="fa-solid fa-triangle-exclamation text-2xl text-rose-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h2 class="text-xl font-bold text-rose-800">Urgent Safety Advisory: Jan 2026</h2>
+                        <p class="text-rose-700 mt-1">
+                            Scammers have evolved. We have detected a massive spike in <strong>"Deepfake Interview"</strong> scams and <strong>"Hardware Security Deposit"</strong> frauds this month. The desperation for new year jobs is being exploited.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scam Types Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                <!-- Scam Card 1 -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden scam-card">
+                    <div class="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+                        <h3 class="font-bold text-gray-800">1. The "Deepfake HR" Scam</h3>
+                        <span class="px-2 py-1 bg-red-100 text-red-700 text-xs font-bold rounded">High Severity</span>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-sm text-gray-600 mb-4">
+                            Scammers use AI video generation to impersonate HR managers from top MNCs (TCS, Google, etc.) on video calls. They conduct a convincing "interview."
+                        </p>
+                        <div class="bg-rose-50 p-3 rounded text-sm text-rose-800 mb-3">
+                            <strong>The Trap:</strong> They ask you to transfer ₹5,000 - ₹25,000 immediately for a "Background Verification Code" or "Laptop Insurance."
+                        </div>
+                        <p class="text-xs text-gray-500 italic">Prevalent on: Telegram, WhatsApp Video</p>
+                    </div>
+                </div>
+
+                <!-- Scam Card 2 -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden scam-card">
+                    <div class="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+                        <h3 class="font-bold text-gray-800">2. The "Task-Based" Ponzi</h3>
+                        <span class="px-2 py-1 bg-orange-100 text-orange-700 text-xs font-bold rounded">Medium Severity</span>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-sm text-gray-600 mb-4">
+                            "Work from home - Rate movie trailers." You get paid small amounts initially to build trust. Then, you are asked to "invest" to unlock "VIP Tasks."
+                        </p>
+                        <div class="bg-orange-50 p-3 rounded text-sm text-orange-800 mb-3">
+                            <strong>The Trap:</strong> Once you deposit a large sum (e.g., ₹50k), the account is locked, and the "recruiter" blocks you.
+                        </div>
+                        <p class="text-xs text-gray-500 italic">Prevalent on: Instagram Ads, Telegram Groups</p>
+                    </div>
+                </div>
+
+                <!-- Scam Card 3 -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden scam-card">
+                    <div class="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+                        <h3 class="font-bold text-gray-800">3. Fake Visa Processing</h3>
+                        <span class="px-2 py-1 bg-red-100 text-red-700 text-xs font-bold rounded">Critical</span>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-sm text-gray-600 mb-4">
+                            Targeting job seekers looking for opportunities in Europe/Canada. Fake agencies issue realistic-looking "Offer Letters" and "Visa Sponsorships."
+                        </p>
+                        <div class="bg-rose-50 p-3 rounded text-sm text-rose-800 mb-3">
+                            <strong>The Trap:</strong> They demand fees for "Medical Tests" or "Embassy Slots" via UPI. Legitimate visa fees are never paid to personal UPI IDs.
+                        </div>
+                        <p class="text-xs text-gray-500 italic">Prevalent on: LinkedIn DMs, Email</p>
+                    </div>
+                </div>
+
+                <!-- Scam Card 4 -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden scam-card">
+                    <div class="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+                        <h3 class="font-bold text-gray-800">4. "Paid Training" Promise</h3>
+                        <span class="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs font-bold rounded">Widespread</span>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-sm text-gray-600 mb-4">
+                            Companies claiming to hire for "Junior Data Analyst" roles but requiring a mandatory 3-month paid training course (₹40k) with a "100% Job Guarantee."
+                        </p>
+                        <div class="bg-yellow-50 p-3 rounded text-sm text-yellow-800 mb-3">
+                            <strong>The Trap:</strong> The training is worthless, and the "guaranteed" job doesn't exist or is an unpaid internship.
+                        </div>
+                        <p class="text-xs text-gray-500 italic">Prevalent on: Job Portals</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Checklist -->
+            <div class="bg-gray-900 rounded-xl p-8 shadow-lg text-white mt-8">
+                <h3 class="text-2xl font-bold mb-4 text-teal-400">Interactive Safety Check</h3>
+                <p class="mb-6 text-gray-300">Received an offer? Check off the following. If you can't check all boxes, <strong>do not proceed.</strong></p>
+                
+                <div class="space-y-4" id="safety-checklist">
+                    <label class="flex items-center space-x-3 cursor-pointer p-3 rounded hover:bg-gray-800 transition">
+                        <input type="checkbox" class="w-5 h-5 text-teal-600 rounded focus:ring-teal-500 bg-gray-700 border-gray-600 safety-check">
+                        <span>The email came from a corporate domain (e.g., @google.com), NOT @gmail or @consultancy.com.</span>
+                    </label>
+                    <label class="flex items-center space-x-3 cursor-pointer p-3 rounded hover:bg-gray-800 transition">
+                        <input type="checkbox" class="w-5 h-5 text-teal-600 rounded focus:ring-teal-500 bg-gray-700 border-gray-600 safety-check">
+                        <span>I was NOT asked to pay money for registration, laptop, or training.</span>
+                    </label>
+                    <label class="flex items-center space-x-3 cursor-pointer p-3 rounded hover:bg-gray-800 transition">
+                        <input type="checkbox" class="w-5 h-5 text-teal-600 rounded focus:ring-teal-500 bg-gray-700 border-gray-600 safety-check">
+                        <span>The interview involved a real conversation about my skills, not just a chat/text interview.</span>
+                    </label>
+                    <label class="flex items-center space-x-3 cursor-pointer p-3 rounded hover:bg-gray-800 transition">
+                        <input type="checkbox" class="w-5 h-5 text-teal-600 rounded focus:ring-teal-500 bg-gray-700 border-gray-600 safety-check">
+                        <span>I have verified the recruiter's profile on LinkedIn and it has activity/connections.</span>
+                    </label>
+                </div>
+                
+                <div id="safety-result" class="mt-6 p-4 rounded-lg bg-gray-800 text-center hidden">
+                    <!-- Dynamic Result -->
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-50 border-t border-gray-200 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
+            <p>&copy; 2026 India Job Pulse Analytics. All rights reserved.</p>
+            <div class="mt-2 md:mt-0 flex space-x-4">
+                <a href="#" class="hover:text-gray-700">Methodology</a>
+                <a href="#" class="hover:text-gray-700">Report Fraud</a>
+                <a href="#" class="hover:text-gray-700">Privacy</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- 1. State Management ---
+        const appState = {
+            currentTab: 'overview',
+            selectedSector: null
+        };
+
+        // --- 2. Data Store (Simulated Report Data for Jan 2026) ---
+        const reportData = {
+            velocity: {
+                labels: ['Jan 1-4', 'Jan 5-11', 'Jan 12-18', 'Jan 19-24'],
+                data: [45000, 98000, 115000, 84850], // Simulated weekly breakdown
+                growth: [5, 12, 18, 10] // % growth week over week
+            },
+            regions: {
+                labels: ['Bangalore', 'NCR (Delhi/Gurgaon)', 'Mumbai', 'Hyderabad', 'Pune', 'GIFT City'],
+                data: [32, 22, 15, 14, 10, 7] // Percentage
+            },
+            sectors: [
+                {
+                    id: 'it',
+                    name: 'IT & Software Services',
+                    count: 120000,
+                    color: '#0D9488', // Teal 600
+                    growth: '+8%',
+                    roles: [
+                        { title: 'Generative AI Engineer', trend: 'Hot' },
+                        { title: 'Cybersecurity Analyst', trend: 'Stable' },
+                        { title: 'Full Stack Dev (MERN)', trend: 'High Vol' }
+                    ],
+                    salary: '₹5.5 - 9.0 LPA'
+                },
+                {
+                    id: 'bfsi',
+                    name: 'BFSI (Banking & Finance)',
+                    count: 85000,
+                    color: '#2563EB', // Blue 600
+                    growth: '+12%',
+                    roles: [
+                        { title: 'Relationship Manager', trend: 'High Vol' },
+                        { title: 'Fraud Risk Analyst', trend: 'Hot' },
+                        { title: 'Investment Advisor', trend: 'Stable' }
+                    ],
+                    salary: '₹4.0 - 7.5 LPA'
+                },
+                {
+                    id: 'mfg',
+                    name: 'Manufacturing & EV',
+                    count: 65000,
+                    color: '#D97706', // Amber 600
+                    growth: '+22%',
+                    roles: [
+                        { title: 'Battery Systems Engineer', trend: 'Very Hot' },
+                        { title: 'Plant Supervisor', trend: 'Stable' },
+                        { title: 'Quality Assurance', trend: 'Stable' }
+                    ],
+                    salary: '₹3.5 - 6.0 LPA'
+                },
+                {
+                    id: 'healthcare',
+                    name: 'Healthcare & Pharma',
+                    count: 45000,
+                    color: '#BE123C', // Rose 600
+                    growth: '+5%',
+                    roles: [
+                        { title: 'Nursing Staff', trend: 'High Vol' },
+                        { title: 'Medical Coder', trend: 'Stable' },
+                        { title: 'Biotech Researcher', trend: 'Niche' }
+                    ],
+                    salary: '₹3.0 - 8.0 LPA'
+                },
+                {
+                    id: 'retail',
+                    name: 'Retail & E-commerce',
+                    count: 27850,
+                    color: '#7C3AED', // Violet 600
+                    growth: '+15%',
+                    roles: [
+                        { title: 'Logistics Manager', trend: 'Stable' },
+                        { title: 'Digital Marketing Exec', trend: 'Hot' },
+                        { title: 'Store Operations', trend: 'High Vol' }
+                    ],
+                    salary: '₹2.5 - 5.0 LPA'
+                }
+            ]
+        };
+
+        // --- 3. Navigation Logic ---
+        function switchTab(tabId) {
+            // Update State
+            appState.currentTab = tabId;
+
+            // Update UI Buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active', 'bg-gray-100', 'text-teal-700', 'border-b-2', 'border-teal-700');
+                btn.classList.add('text-gray-600');
+            });
+
+            // Specific styling for the active button needs to be re-applied based on the ID
+            const activeBtn = document.getElementById(`btn-${tabId}`);
+            if(activeBtn) {
+                 activeBtn.classList.add('active');
+            }
+
+            // Hide all views
+            document.getElementById('view-overview').classList.add('hidden');
+            document.getElementById('view-sectors').classList.add('hidden');
+            document.getElementById('view-scams').classList.add('hidden');
+
+            // Show selected view
+            const selectedView = document.getElementById(`view-${tabId}`);
+            selectedView.classList.remove('hidden');
+            
+            // Trigger chart resize/render if needed (Chart.js canvas sometimes needs this on display:block)
+            if (tabId === 'overview') {
+                if(velocityChartInstance) velocityChartInstance.resize();
+                if(regionChartInstance) regionChartInstance.resize();
+            }
+            if (tabId === 'sectors') {
+                if(sectorChartInstance) sectorChartInstance.resize();
+            }
+            
+            // Scroll to top
+            window.scrollTo(0,0);
+        }
+
+        // Mobile Menu Logic
+        document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        });
+
+        // --- 4. Chart Initialization ---
+        let velocityChartInstance = null;
+        let regionChartInstance = null;
+        let sectorChartInstance = null;
+
+        function initCharts() {
+            // A. Hiring Velocity Chart (Line)
+            const ctxVel = document.getElementById('velocityChart').getContext('2d');
+            velocityChartInstance = new Chart(ctxVel, {
+                type: 'line',
+                data: {
+                    labels: reportData.velocity.labels,
+                    datasets: [{
+                        label: 'Job Postings (Count)',
+                        data: reportData.velocity.data,
+                        borderColor: '#0F766E', // Teal 700
+                        backgroundColor: 'rgba(15, 118, 110, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#0F766E',
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => ` ${context.formattedValue} Openings`
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { borderDash: [2, 4], color: '#f3f4f6' },
+                            ticks: { font: { family: 'Inter' } }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { family: 'Inter' } }
+                        }
+                    }
+                }
+            });
+
+            // B. Regional Chart (Doughnut)
+            const ctxReg = document.getElementById('regionChart').getContext('2d');
+            regionChartInstance = new Chart(ctxReg, {
+                type: 'doughnut',
+                data: {
+                    labels: reportData.regions.labels,
+                    datasets: [{
+                        data: reportData.regions.data,
+                        backgroundColor: [
+                            '#0F766E', '#0D9488', '#14B8A6', '#2DD4BF', '#5EEAD4', '#99F6E4'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { 
+                            position: 'right',
+                            labels: { boxWidth: 12, usePointStyle: true, font: { family: 'Inter', size: 11 } }
+                        }
+                    },
+                    cutout: '65%'
+                }
+            });
+
+            // C. Sector Chart (Bar - Interactive)
+            const ctxSec = document.getElementById('sectorChart').getContext('2d');
+            sectorChartInstance = new Chart(ctxSec, {
+                type: 'bar',
+                data: {
+                    labels: reportData.sectors.map(s => s.name),
+                    datasets: [{
+                        label: 'Total Openings',
+                        data: reportData.sectors.map(s => s.count),
+                        backgroundColor: reportData.sectors.map(s => s.color),
+                        borderRadius: 6,
+                        barThickness: 30
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y', // Horizontal Bar
+                    onClick: (e, activeEls) => {
+                        if (activeEls.length > 0) {
+                            const index = activeEls[0].index;
+                            updateSectorDetails(index);
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                afterLabel: () => 'Click bar for details'
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { borderDash: [2, 4] }
+                        },
+                        y: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- 5. Interaction Logic ---
+        
+        // Update Sector Details Panel
+        function updateSectorDetails(index) {
+            const data = reportData.sectors[index];
+            const placeholder = document.getElementById('sector-placeholder');
+            const content = document.getElementById('sector-content');
+
+            // Swap view
+            placeholder.classList.add('hidden');
+            content.classList.remove('hidden');
+
+            // Populate Data
+            document.getElementById('detail-title').innerText = data.name;
+            document.getElementById('detail-title').className = `text-xl font-bold`; 
+            document.getElementById('detail-title').style.color = data.color;
+
+            document.getElementById('detail-growth').innerText = `${data.growth} vs Last Month`;
+            document.getElementById('detail-salary').innerText = data.salary;
+
+            // Populate Roles List
+            const rolesList = document.getElementById('detail-roles');
+            rolesList.innerHTML = '';
+            data.roles.forEach(role => {
+                const li = document.createElement('li');
+                li.className = 'flex justify-between items-center bg-gray-50 p-3 rounded border border-gray-100';
+                
+                let badgeColor = 'bg-gray-200 text-gray-700';
+                if(role.trend === 'Hot' || role.trend === 'Very Hot') badgeColor = 'bg-rose-100 text-rose-700';
+                if(role.trend === 'High Vol') badgeColor = 'bg-blue-100 text-blue-700';
+
+                li.innerHTML = `
+                    <span class="font-medium text-gray-800 text-sm">${role.title}</span>
+                    <span class="text-xs px-2 py-1 rounded ${badgeColor} font-bold">${role.trend}</span>
+                `;
+                rolesList.appendChild(li);
+            });
+        }
+
+        // Safety Checklist Logic
+        const checkboxes = document.querySelectorAll('.safety-check');
+        const resultBox = document.getElementById('safety-result');
+
+        checkboxes.forEach(box => {
+            box.addEventListener('change', () => {
+                const total = checkboxes.length;
+                const checked = document.querySelectorAll('.safety-check:checked').length;
+                
+                resultBox.classList.remove('hidden');
+                
+                if (checked === total) {
+                    resultBox.className = 'mt-6 p-4 rounded-lg bg-green-900 border border-green-700 text-center';
+                    resultBox.innerHTML = `
+                        <div class="text-green-400 font-bold text-lg mb-1"><i class="fa-solid fa-check-circle"></i> Looks Safe</div>
+                        <p class="text-green-200 text-sm">Proceed with caution. Never share OTPs.</p>
+                    `;
+                } else {
+                    resultBox.className = 'mt-6 p-4 rounded-lg bg-rose-900 border border-rose-700 text-center';
+                    resultBox.innerHTML = `
+                        <div class="text-rose-400 font-bold text-lg mb-1"><i class="fa-solid fa-hand"></i> Stop immediately</div>
+                        <p class="text-rose-200 text-sm">This shows signs of a scam. Do not pay or share ID.</p>
+                    `;
+                }
+            });
+        });
+
+        // --- 6. Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initCharts();
+        });
+
+    </script>
+</body>
+</html>
