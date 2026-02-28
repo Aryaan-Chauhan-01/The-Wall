@@ -3,650 +3,396 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>India Job Market Pulse: Jan 2026 Report</title>
-    <meta name="description" content="India Job Pulse – AI-powered insights, job updates, and career resources for Indian professionals.">
-    
-    <!-- Tailwind CSS -->
+    <title>AI Impact Summit India 2026: Interactive Report</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-    <!-- Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <!-- Chosen Palette: Warm Professional
-         Background: #F9FAFB (Cool Gray 50) - Base
-         Primary Text: #1F2937 (Gray 800)
-         Accent/Brand: #0F766E (Teal 700) - Represents Growth/Stability
-         Alert/Scam: #BE123C (Rose 700) - Warning
-         Secondary: #D97706 (Amber 600) - Highlights
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Chosen Palette: Warm Neutrals & Tech Teal (Base: #fdfbf7, Text: #1e293b, Accents: #0f766e, #b45309) -->
+    <!-- Application Structure Plan: A dashboard-style SPA divided into four core thematic tabs (Overview, Sectoral Impact, Infrastructure, Policy). This structure was chosen because summit reports often cover diverse, complex topics. A tabbed interface allows users to consume information in bite-sized, logical chunks without overwhelming them with a single long scroll. The interactive charts allow drill-downs into specific data points. -->
+    <!-- Visualization & Content Choices: 
+         1. Overview -> Goal: Inform -> KPI Cards (HTML/CSS) -> Interactive Hover -> Quick summary of summit scale.
+         2. Sectoral Impact -> Goal: Compare -> Bar Chart (Chart.js) -> Clickable bars update text panel -> Allows users to see both macro comparison and micro details per sector without SVG.
+         3. Infrastructure -> Goal: Change/Trends -> Line Chart (Chart.js) -> Toggle datasets (Compute vs Energy) -> Shows correlation over time dynamically.
+         4. Policy -> Goal: Organize -> Interactive Grid (HTML/Tailwind) -> Hover states reveal details -> Breaks down the 'Bharat AI Framework' logically. 
+         Library/Method: Chart.js for data visualization, Tailwind for layout. 
     -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
 
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #F9FAFB;
-            color: #1F2937;
+            background-color: #fdfbf7; /* Warm neutral background */
+            color: #1e293b;
         }
-
-        /* Chart Container Styling (Mandatory) */
+        
+        /* Required Chart Container Styling */
         .chart-container {
             position: relative;
             width: 100%;
-            max-width: 100%;
-            height: 300px; /* Mobile base height */
+            max-width: 800px;
             margin-left: auto;
             margin-right: auto;
+            height: 40vh;
+            max-height: 400px;
         }
 
-        @media (min-width: 768px) {
-            .chart-container {
-                height: 350px; /* Tablet/Desktop height */
-            }
-        }
-
-        @media (min-width: 1024px) {
-            .chart-container {
-                height: 400px; /* Large screen height */
-            }
-        }
-
-        /* Custom Scrollbar for internal panels */
-        .custom-scroll::-webkit-scrollbar {
-            width: 6px;
-        }
-        .custom-scroll::-webkit-scrollbar-track {
-            background: #f1f1f1; 
-        }
-        .custom-scroll::-webkit-scrollbar-thumb {
-            background: #cbd5e1; 
-            border-radius: 4px;
-        }
-        .custom-scroll::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8; 
-        }
-
-        /* Interactive Element States */
-        .nav-btn.active {
-            background-color: #0F766E;
-            color: white;
-            border-color: #0F766E;
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.4s ease-in-out;
         }
         
-        .scam-card {
-            transition: all 0.3s ease;
-            border-left: 4px solid transparent;
-        }
-        .scam-card:hover {
-            transform: translateX(4px);
-            border-left-color: #BE123C;
-        }
-        
-        .fade-in {
-            animation: fadeIn 0.5s ease-in;
+        .tab-content.active {
+            display: block;
         }
 
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        .custom-card {
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .custom-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* HTML-based icon styling (No SVG) */
+        .html-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background-color: #e2e8f0;
+            font-size: 24px;
+            font-weight: bold;
+            color: #0f766e;
+        }
     </style>
-
-    <!-- 
-    Application Structure Plan:
-    1.  **Header & Navigation:** Clear context (Jan 1-24, 2026) and tab-based navigation to switch between "Market Overview", "Sector Deep Dive", and "Scam Watch".
-    2.  **Dashboard (Overview):** High-level metrics (Total Jobs, Growth, Risk Level) + Hiring Velocity Chart. Purpose: Immediate situational awareness.
-    3.  **Sector Analysis:** Interactive Bar Chart + Details Panel. User clicks a sector bar to see top roles and salary ranges. Purpose: Granular exploration of where the opportunities are.
-    4.  **Regional Heatmap:** Simple visualization of top hiring cities vs. emerging Tier-2 hubs.
-    5.  **Scam Monitor (CRITICAL):** A dedicated, distinctively styled section (Red/Warning themes). 
-        -   Cards for specific scams (e.g., "Deepfake HR").
-        -   Interactive "Safety Checklist" to engage users in self-protection.
-    6.  **Footer:** Disclaimers and data sources.
-    -->
-
-    <!-- 
-    Visualization & Content Choices:
-    1.  **Hiring Velocity (Line Chart):** Shows the trend of job postings over the first 24 days. Interaction: Tooltip. Goal: Show momentum.
-    2.  **Sector Split (Bar Chart - Horizontal):** Best for comparing long category names. Interaction: Click bar to update "Details Panel". Goal: Compare volume.
-    3.  **Regional Split (Doughnut Chart):** Simple proportion view. Goal: Geographic distribution.
-    4.  **Scam Types (Interactive Cards):** HTML/JS accordion or toggle. No complex chart needed; text is more important here.
-    -->
-
-    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
 </head>
-<body class="flex flex-col min-h-screen">
+<body class="antialiased min-h-screen flex flex-col">
 
-    <!-- Navigation Bar -->
-    <nav class="bg-white shadow-sm sticky top-0 z-50">
+    <!-- Header Navigation -->
+    <header class="bg-white border-b border-stone-200 sticky top-0 z-50 shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center gap-3">
-                    <div class="bg-teal-700 text-white p-2 rounded-lg">
-                        <i class="fa-solid fa-chart-line text-lg"></i>
-                    </div>
-                    <div>
-                        <h1 class="text-xl font-bold text-gray-900 leading-tight">India Job Pulse</h1>
-                        <p class="text-xs text-gray-500">Report Period: Jan 1 - Jan 24, 2026</p>
-                    </div>
+            <div class="flex flex-col md:flex-row justify-between items-center py-4">
+                <div class="mb-4 md:mb-0 text-center md:text-left">
+                    <h1 class="text-2xl font-bold text-teal-800">AI Impact Summit India 2026</h1>
+                    <p class="text-sm text-stone-500 font-medium">Technological Decisions & Future Roadmap</p>
                 </div>
-                <div class="hidden md:flex items-center space-x-4">
-                    <button onclick="switchTab('overview')" id="btn-overview" class="nav-btn active px-4 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors">Market Overview</button>
-                    <button onclick="switchTab('sectors')" id="btn-sectors" class="nav-btn px-4 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors">Sector Insights</button>
-                    <button onclick="switchTab('scams')" id="btn-scams" class="nav-btn px-4 py-2 rounded-md text-sm font-medium text-rose-700 hover:bg-rose-50 hover:text-rose-800 transition-colors border border-transparent hover:border-rose-200">
-                        <i class="fa-solid fa-shield-halved mr-1"></i> Scam Monitor
-                    </button>
-                </div>
-                <!-- Mobile menu button (simple implementation) -->
-                <div class="md:hidden flex items-center">
-                    <button id="mobile-menu-btn" class="text-gray-500 hover:text-gray-700 p-2">
-                        <i class="fa-solid fa-bars text-xl"></i>
-                    </button>
-                </div>
+                <nav class="flex space-x-1 sm:space-x-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 hide-scrollbar">
+                    <button onclick="switchTab('overview')" id="btn-overview" class="tab-btn px-4 py-2 rounded-md text-sm font-semibold bg-teal-700 text-white transition-colors whitespace-nowrap">Overview</button>
+                    <button onclick="switchTab('sectors')" id="btn-sectors" class="tab-btn px-4 py-2 rounded-md text-sm font-semibold text-stone-600 hover:bg-stone-100 transition-colors whitespace-nowrap">Sectoral Impact</button>
+                    <button onclick="switchTab('infrastructure')" id="btn-infrastructure" class="tab-btn px-4 py-2 rounded-md text-sm font-semibold text-stone-600 hover:bg-stone-100 transition-colors whitespace-nowrap">Infrastructure</button>
+                    <button onclick="switchTab('policy')" id="btn-policy" class="tab-btn px-4 py-2 rounded-md text-sm font-semibold text-stone-600 hover:bg-stone-100 transition-colors whitespace-nowrap">Policy & Ethics</button>
+                </nav>
             </div>
         </div>
-        <!-- Mobile Menu Dropdown -->
-        <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-100 px-4 py-2 shadow-lg">
-            <button onclick="switchTab('overview')" class="block w-full text-left py-2 text-sm font-medium text-gray-700">Market Overview</button>
-            <button onclick="switchTab('sectors')" class="block w-full text-left py-2 text-sm font-medium text-gray-700">Sector Insights</button>
-            <button onclick="switchTab('scams')" class="block w-full text-left py-2 text-sm font-medium text-rose-700">Scam Monitor</button>
-        </div>
-    </nav>
+    </header>
 
     <!-- Main Content Area -->
     <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
 
-        <!-- VIEW 1: OVERVIEW -->
-        <div id="view-overview" class="fade-in space-y-8">
-            
-            <!-- Intro Text -->
-            <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-                <h2 class="text-2xl font-bold text-gray-800 mb-2">Executive Summary</h2>
-                <p class="text-gray-600 leading-relaxed">
-                    The first 24 days of 2026 have signaled a <strong>robust recovery</strong> in the Indian job market, driven primarily by the "AI Implementation Phase" across non-tech industries. While total opening volume is up by <span class="text-teal-700 font-bold">12.4%</span> compared to Jan 2025, a worrying trend of sophisticated recruitment fraud has emerged alongside this growth. This dashboard provides a transparent view of opportunities and risks.
+        <!-- SECTION 1: OVERVIEW -->
+        <section id="overview" class="tab-content active">
+            <div class="mb-8 border-l-4 border-teal-600 pl-4">
+                <h2 class="text-3xl font-bold text-stone-800 mb-2">Executive Summary</h2>
+                <p class="text-stone-600 leading-relaxed max-w-4xl">
+                    This section provides a high-level overview of the historic AI Impact Summit held in New Delhi, 2026. The summit marked a pivotal moment in transitioning from AI experimentation to widespread, governed deployment. Here, you can explore the top-level quantitative outcomes, including projected economic impacts and national training targets established by key stakeholders.
                 </p>
             </div>
 
-            <!-- KPI Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <!-- KPI 1 -->
-                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-teal-600">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-sm font-medium text-gray-500 uppercase">Total New Openings</p>
-                            <h3 class="text-3xl font-bold text-gray-900 mt-1">342,850</h3>
-                        </div>
-                        <div class="p-2 bg-teal-50 rounded-lg text-teal-700">
-                            <i class="fa-solid fa-briefcase text-xl"></i>
-                        </div>
-                    </div>
-                    <div class="mt-4 flex items-center text-sm">
-                        <span class="text-green-600 font-medium flex items-center">
-                            <i class="fa-solid fa-arrow-up mr-1"></i> 12.4%
-                        </span>
-                        <span class="text-gray-400 ml-2">vs Jan 2025</span>
-                    </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                <div class="custom-card p-6 rounded-xl border-t-4 border-t-amber-500">
+                    <div class="html-icon mb-4 bg-amber-100 text-amber-700">₹</div>
+                    <h3 class="text-stone-500 text-sm font-semibold uppercase tracking-wider">Economic Projection</h3>
+                    <p class="text-4xl font-bold text-stone-800 my-2">$500B</p>
+                    <p class="text-sm text-stone-600">Projected addition to India's GDP by 2030 through AI integration.</p>
                 </div>
-
-                <!-- KPI 2 -->
-                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-600">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-sm font-medium text-gray-500 uppercase">Top Growth Sector</p>
-                            <h3 class="text-3xl font-bold text-gray-900 mt-1">Green Tech</h3>
-                        </div>
-                        <div class="p-2 bg-blue-50 rounded-lg text-blue-700">
-                            <i class="fa-solid fa-leaf text-xl"></i>
-                        </div>
-                    </div>
-                    <div class="mt-4 flex items-center text-sm">
-                        <span class="text-gray-600">Driven by Solar & EV Policy 2026</span>
-                    </div>
+                <div class="custom-card p-6 rounded-xl border-t-4 border-t-teal-600">
+                    <div class="html-icon mb-4 bg-teal-100 text-teal-700">⚙</div>
+                    <h3 class="text-stone-500 text-sm font-semibold uppercase tracking-wider">Compute Target</h3>
+                    <p class="text-4xl font-bold text-stone-800 my-2">15 ExaFLOPS</p>
+                    <p class="text-sm text-stone-600">Target sovereign compute capacity to be built domestically by 2028.</p>
                 </div>
-
-                <!-- KPI 3 -->
-                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-rose-600">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-sm font-medium text-gray-500 uppercase">Scam Alerts</p>
-                            <h3 class="text-3xl font-bold text-rose-700 mt-1">High Risk</h3>
-                        </div>
-                        <div class="p-2 bg-rose-50 rounded-lg text-rose-700">
-                            <i class="fa-solid fa-triangle-exclamation text-xl"></i>
-                        </div>
-                    </div>
-                    <div class="mt-4 flex items-center text-sm">
-                        <span class="text-rose-600 font-medium">15,000+ Reports</span>
-                        <span class="text-gray-400 ml-2">since Jan 1st</span>
-                    </div>
+                <div class="custom-card p-6 rounded-xl border-t-4 border-t-indigo-500">
+                    <div class="html-icon mb-4 bg-indigo-100 text-indigo-700">⚑</div>
+                    <h3 class="text-stone-500 text-sm font-semibold uppercase tracking-wider">Skill Development</h3>
+                    <p class="text-4xl font-bold text-stone-800 my-2">10 Million</p>
+                    <p class="text-sm text-stone-600">Professionals to be reskilled under the new National AI Workforce initiative.</p>
                 </div>
             </div>
 
-            <!-- Charts Section -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <!-- Hiring Velocity Chart -->
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
-                        <i class="fa-solid fa-chart-line mr-2 text-teal-600"></i> Hiring Velocity (Jan 1-24)
-                    </h3>
-                    <div class="chart-container">
-                        <canvas id="velocityChart"></canvas>
-                    </div>
-                    <p class="text-xs text-gray-400 mt-4 text-center">Data aggregated from top 5 job portals and LinkedIn Insights.</p>
-                </div>
-
-                <!-- Regional Heatmap Chart -->
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-bold text-gray-800 flex items-center">
-                            <i class="fa-solid fa-map-location-dot mr-2 text-teal-600"></i> Regional Distribution
-                        </h3>
-                        <span class="px-2 py-1 bg-gray-100 text-xs rounded text-gray-600">Top 5 Hubs</span>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="regionChart"></canvas>
-                    </div>
-                    <div class="mt-4 grid grid-cols-2 gap-4 text-sm">
-                        <div class="bg-teal-50 p-3 rounded border border-teal-100">
-                            <span class="block font-semibold text-teal-800">Bangalore</span>
-                            <span class="text-xs text-gray-600">Leading in AI & DeepTech</span>
-                        </div>
-                        <div class="bg-blue-50 p-3 rounded border border-blue-100">
-                            <span class="block font-semibold text-blue-800">GIFT City (Gujarat)</span>
-                            <span class="text-xs text-gray-600">Highest growth in Fintech</span>
-                        </div>
-                    </div>
-                </div>
+            <div class="bg-white p-8 rounded-xl shadow-sm border border-stone-200">
+                <h3 class="text-xl font-bold text-stone-800 mb-4">Core Summit Directives</h3>
+                <ul class="space-y-4">
+                    <li class="flex items-start">
+                        <span class="inline-block w-6 h-6 rounded-full bg-teal-100 text-teal-800 font-bold text-center leading-6 mr-3 mt-0.5">1</span>
+                        <p class="text-stone-700"><strong>Establishment of "Bharat AI":</strong> A consortium of public-private partnerships focused on developing foundational models trained on highly diverse, multilingual Indian datasets to prevent cultural bias.</p>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="inline-block w-6 h-6 rounded-full bg-teal-100 text-teal-800 font-bold text-center leading-6 mr-3 mt-0.5">2</span>
+                        <p class="text-stone-700"><strong>Mandatory Watermarking:</strong> All synthetic media generated by commercial APIs must now carry cryptographic watermarks to combat deepfakes ahead of the upcoming electoral cycles.</p>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="inline-block w-6 h-6 rounded-full bg-teal-100 text-teal-800 font-bold text-center leading-6 mr-3 mt-0.5">3</span>
+                        <p class="text-stone-700"><strong>Green AI Mandate:</strong> Data centers expanding AI clusters must source a minimum of 60% of their energy from renewable sources to mitigate environmental impact.</p>
+                    </li>
+                </ul>
             </div>
-        </div>
+        </section>
 
-        <!-- VIEW 2: SECTOR INSIGHTS -->
-        <div id="view-sectors" class="hidden fade-in space-y-6">
-            
-            <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-                <h2 class="text-2xl font-bold text-gray-800 mb-2">Sector Deep Dive</h2>
-                <p class="text-gray-600">
-                    Explore the industries driving employment in Jan 2026. <span class="font-medium text-teal-700">Click on any bar in the chart below</span> to see detailed role breakdowns and average salary trends for that sector.
+        <!-- SECTION 2: SECTORAL IMPACT -->
+        <section id="sectors" class="tab-content">
+             <div class="mb-8 border-l-4 border-amber-500 pl-4">
+                <h2 class="text-3xl font-bold text-stone-800 mb-2">Sector-Specific Transformations</h2>
+                <p class="text-stone-600 leading-relaxed max-w-4xl">
+                    The summit identified four critical sectors for immediate AI deployment. This section allows you to interact with the projected efficiency gains. <strong>Click on any bar in the chart below</strong> to view specific technological decisions and case studies relevant to that industry.
                 </p>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Interactive Chart Column -->
-                <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <h3 class="text-lg font-bold text-gray-800 mb-4">Volume by Industry</h3>
-                    <div class="chart-container" style="height: 500px; max-height: 600px;">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                    <h3 class="text-lg font-bold text-stone-800 mb-4 text-center">Projected Efficiency Gains by 2028 (%)</h3>
+                    <div class="chart-container">
                         <canvas id="sectorChart"></canvas>
                     </div>
+                    <p class="text-xs text-center text-stone-500 mt-4">* Click a bar to view sector details</p>
                 </div>
 
-                <!-- Details Panel Column -->
-                <div class="lg:col-span-1">
-                    <div id="sector-detail-panel" class="bg-white p-6 rounded-xl shadow-lg border border-teal-100 h-full sticky top-24">
-                        <!-- Default State -->
-                        <div id="sector-placeholder" class="text-center h-full flex flex-col justify-center items-center text-gray-400">
-                            <i class="fa-solid fa-hand-pointer text-4xl mb-4"></i>
-                            <p>Select a sector from the chart to view details.</p>
-                        </div>
-
-                        <!-- Active State (Hidden by default) -->
-                        <div id="sector-content" class="hidden h-full flex flex-col">
-                            <div class="mb-4 pb-4 border-b border-gray-100">
-                                <h4 id="detail-title" class="text-xl font-bold text-teal-800">IT & Services</h4>
-                                <span id="detail-growth" class="inline-block mt-2 px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded">+15% vs Last Month</span>
-                            </div>
-
-                            <div class="flex-grow">
-                                <h5 class="font-semibold text-gray-700 mb-3 text-sm uppercase tracking-wide">Top 3 In-Demand Roles</h5>
-                                <ul id="detail-roles" class="space-y-3">
-                                    <!-- Dynamic Content -->
-                                </ul>
-
-                                <h5 class="font-semibold text-gray-700 mt-6 mb-3 text-sm uppercase tracking-wide">Avg. Entry Salary (Jan '26)</h5>
-                                <div class="bg-gray-50 p-4 rounded-lg">
-                                    <span id="detail-salary" class="text-2xl font-bold text-gray-900">₹6-8 LPA</span>
-                                    <p class="text-xs text-gray-500 mt-1">Based on validated offer letters</p>
-                                </div>
-                            </div>
-
-                            <div class="mt-6 pt-4 border-t border-gray-100">
-                               
-                            </div>
-                        </div>
+                <div class="bg-stone-100 p-8 rounded-xl border border-stone-200 h-full flex flex-col justify-center" id="sector-details-panel">
+                    <div class="text-center text-stone-500 mb-4">
+                        <div class="html-icon bg-stone-200 text-stone-400 mb-4 mx-auto" style="width:64px; height:64px; font-size:32px;">👆</div>
+                        <p class="text-lg">Select a sector from the chart to view specific technological decisions and impact strategies.</p>
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- VIEW 3: SCAM MONITOR -->
-        <div id="view-scams" class="hidden fade-in space-y-8">
-            
-            <!-- Alert Banner -->
-            <div class="bg-rose-50 border-l-4 border-rose-600 p-6 rounded-r-xl shadow-sm">
-                <div class="flex items-start">
-                    <div class="flex-shrink-0">
-                        <i class="fa-solid fa-triangle-exclamation text-2xl text-rose-600"></i>
+        <!-- SECTION 3: INFRASTRUCTURE -->
+        <section id="infrastructure" class="tab-content">
+            <div class="mb-8 border-l-4 border-indigo-500 pl-4">
+                <h2 class="text-3xl font-bold text-stone-800 mb-2">Infrastructure & Compute Roadmap</h2>
+                <p class="text-stone-600 leading-relaxed max-w-4xl">
+                    AI scales only as well as its underlying hardware. This section details the Summit's resolution on hardware sovereignty and sustainable scaling. Use the toggles below the chart to explore the relationship between projected compute capacity growth and the aggressive transition toward renewable energy to power these data centers.
+                </p>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200 mb-8">
+                <div class="flex justify-between items-center mb-6 flex-wrap gap-4">
+                    <h3 class="text-lg font-bold text-stone-800" id="infra-chart-title">Sovereign Compute Capacity (ExaFLOPS)</h3>
+                    <div class="flex space-x-2">
+                        <button onclick="updateInfraChart('compute')" id="btn-infra-compute" class="px-3 py-1 bg-indigo-600 text-white rounded text-sm transition-colors">Compute Growth</button>
+                        <button onclick="updateInfraChart('energy')" id="btn-infra-energy" class="px-3 py-1 bg-stone-200 text-stone-700 hover:bg-stone-300 rounded text-sm transition-colors">Renewable Energy Mix</button>
                     </div>
-                    <div class="ml-4">
-                        <h2 class="text-xl font-bold text-rose-800">Urgent Safety Advisory: Jan 2026</h2>
-                        <p class="text-rose-700 mt-1">
-                            Scammers have evolved. We have detected a massive spike in <strong>"Deepfake Interview"</strong> scams and <strong>"Hardware Security Deposit"</strong> frauds this month. The desperation for new year jobs is being exploited.
-                        </p>
-                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="infraChart"></canvas>
                 </div>
             </div>
 
-            <!-- Scam Types Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                
-                <!-- Scam Card 1 -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden scam-card">
-                    <div class="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-                        <h3 class="font-bold text-gray-800">1. The "Deepfake HR" Scam</h3>
-                        <span class="px-2 py-1 bg-red-100 text-red-700 text-xs font-bold rounded">High Severity</span>
-                    </div>
-                    <div class="p-6">
-                        <p class="text-sm text-gray-600 mb-4">
-                            Scammers use AI video generation to impersonate HR managers from top MNCs (TCS, Google, etc.) on video calls. They conduct a convincing "interview."
-                        </p>
-                        <div class="bg-rose-50 p-3 rounded text-sm text-rose-800 mb-3">
-                            <strong>The Trap:</strong> They ask you to transfer ₹5,000 - ₹25,000 immediately for a "Background Verification Code" or "Laptop Insurance."
-                        </div>
-                        <p class="text-xs text-gray-500 italic">Prevalent on: Telegram, WhatsApp Video</p>
+                 <div class="p-6 bg-stone-50 rounded-lg border border-stone-200">
+                    <h4 class="font-bold text-indigo-800 mb-2">The 'Yotta' Initiative</h4>
+                    <p class="text-sm text-stone-600">A $3 Billion public fund launched to subsidize local manufacturing of AI accelerators and tensor processing units, reducing reliance on foreign chip imports by 40% by 2029.</p>
+                 </div>
+                 <div class="p-6 bg-stone-50 rounded-lg border border-stone-200">
+                    <h4 class="font-bold text-green-700 mb-2">Cooling Innovations</h4>
+                    <p class="text-sm text-stone-600">Mandatory adoption of closed-loop liquid cooling systems for all new Tier 4 data centers dedicated to AI workloads to conserve water resources in arid regions.</p>
+                 </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: POLICY & ETHICS -->
+        <section id="policy" class="tab-content">
+             <div class="mb-8 border-l-4 border-rose-500 pl-4">
+                <h2 class="text-3xl font-bold text-stone-800 mb-2">The Bharat AI Ethics Framework</h2>
+                <p class="text-stone-600 leading-relaxed max-w-4xl">
+                    Technological advancement without guardrails presents severe risks. The Summit finalized the 'Bharat AI Framework', a set of binding guidelines for enterprise AI. This section organizes these policies into four core pillars. Hover over each pillar to understand the regulatory mechanisms put in place.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Pillar 1 -->
+                <div class="group relative bg-white border border-stone-200 rounded-xl p-6 hover:bg-rose-50 transition-colors cursor-pointer min-h-[250px] flex flex-col items-center justify-center text-center">
+                    <div class="html-icon bg-rose-100 text-rose-700 mb-4 transition-transform group-hover:scale-110">⚖️</div>
+                    <h3 class="font-bold text-stone-800 mb-2">Algorithmic Fairness</h3>
+                    <p class="text-stone-500 text-sm group-hover:hidden transition-opacity">Addressing bias in models.</p>
+                    <div class="hidden group-hover:block absolute inset-0 bg-rose-700 text-white p-6 rounded-xl overflow-y-auto">
+                        <h4 class="font-bold mb-2">Mandatory Audits</h4>
+                        <p class="text-sm text-rose-100">Models used in credit scoring, hiring, and law enforcement must undergo bi-annual fairness audits by certified third-party agencies. Datasets must reflect regional demographic diversity.</p>
                     </div>
                 </div>
 
-                <!-- Scam Card 2 -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden scam-card">
-                    <div class="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-                        <h3 class="font-bold text-gray-800">2. The "Task-Based" Ponzi</h3>
-                        <span class="px-2 py-1 bg-orange-100 text-orange-700 text-xs font-bold rounded">Medium Severity</span>
-                    </div>
-                    <div class="p-6">
-                        <p class="text-sm text-gray-600 mb-4">
-                            "Work from home - Rate movie trailers." You get paid small amounts initially to build trust. Then, you are asked to "invest" to unlock "VIP Tasks."
-                        </p>
-                        <div class="bg-orange-50 p-3 rounded text-sm text-orange-800 mb-3">
-                            <strong>The Trap:</strong> Once you deposit a large sum (e.g., ₹50k), the account is locked, and the "recruiter" blocks you.
-                        </div>
-                        <p class="text-xs text-gray-500 italic">Prevalent on: Instagram Ads, Telegram Groups</p>
+                <!-- Pillar 2 -->
+                <div class="group relative bg-white border border-stone-200 rounded-xl p-6 hover:bg-teal-50 transition-colors cursor-pointer min-h-[250px] flex flex-col items-center justify-center text-center">
+                    <div class="html-icon bg-teal-100 text-teal-700 mb-4 transition-transform group-hover:scale-110">🛡️</div>
+                    <h3 class="font-bold text-stone-800 mb-2">Data Sovereignty</h3>
+                    <p class="text-stone-500 text-sm group-hover:hidden transition-opacity">Protecting citizen data.</p>
+                    <div class="hidden group-hover:block absolute inset-0 bg-teal-700 text-white p-6 rounded-xl overflow-y-auto">
+                        <h4 class="font-bold mb-2">Localization Laws</h4>
+                        <p class="text-sm text-teal-100">Critical personal data used for training foundational models must reside on servers physically located within Indian borders. Strict penalties introduced for unauthorized cross-border transfers.</p>
                     </div>
                 </div>
 
-                <!-- Scam Card 3 -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden scam-card">
-                    <div class="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-                        <h3 class="font-bold text-gray-800">3. Fake Visa Processing</h3>
-                        <span class="px-2 py-1 bg-red-100 text-red-700 text-xs font-bold rounded">Critical</span>
-                    </div>
-                    <div class="p-6">
-                        <p class="text-sm text-gray-600 mb-4">
-                            Targeting job seekers looking for opportunities in Europe/Canada. Fake agencies issue realistic-looking "Offer Letters" and "Visa Sponsorships."
-                        </p>
-                        <div class="bg-rose-50 p-3 rounded text-sm text-rose-800 mb-3">
-                            <strong>The Trap:</strong> They demand fees for "Medical Tests" or "Embassy Slots" via UPI. Legitimate visa fees are never paid to personal UPI IDs.
-                        </div>
-                        <p class="text-xs text-gray-500 italic">Prevalent on: LinkedIn DMs, Email</p>
+                <!-- Pillar 3 -->
+                <div class="group relative bg-white border border-stone-200 rounded-xl p-6 hover:bg-amber-50 transition-colors cursor-pointer min-h-[250px] flex flex-col items-center justify-center text-center">
+                    <div class="html-icon bg-amber-100 text-amber-700 mb-4 transition-transform group-hover:scale-110">👁️</div>
+                    <h3 class="font-bold text-stone-800 mb-2">Transparency</h3>
+                    <p class="text-stone-500 text-sm group-hover:hidden transition-opacity">Explainable AI mandates.</p>
+                    <div class="hidden group-hover:block absolute inset-0 bg-amber-600 text-white p-6 rounded-xl overflow-y-auto">
+                        <h4 class="font-bold mb-2">"Right to Explainability"</h4>
+                        <p class="text-sm text-amber-100">Citizens have the right to request a human-readable explanation of decisions made by AI systems regarding loan rejections, healthcare triage, or university admissions.</p>
                     </div>
                 </div>
 
-                <!-- Scam Card 4 -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden scam-card">
-                    <div class="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-                        <h3 class="font-bold text-gray-800">4. "Paid Training" Promise</h3>
-                        <span class="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs font-bold rounded">Widespread</span>
-                    </div>
-                    <div class="p-6">
-                        <p class="text-sm text-gray-600 mb-4">
-                            Companies claiming to hire for "Junior Data Analyst" roles but requiring a mandatory 3-month paid training course (₹40k) with a "100% Job Guarantee."
-                        </p>
-                        <div class="bg-yellow-50 p-3 rounded text-sm text-yellow-800 mb-3">
-                            <strong>The Trap:</strong> The training is worthless, and the "guaranteed" job doesn't exist or is an unpaid internship.
-                        </div>
-                        <p class="text-xs text-gray-500 italic">Prevalent on: Job Portals</p>
+                <!-- Pillar 4 -->
+                <div class="group relative bg-white border border-stone-200 rounded-xl p-6 hover:bg-indigo-50 transition-colors cursor-pointer min-h-[250px] flex flex-col items-center justify-center text-center">
+                    <div class="html-icon bg-indigo-100 text-indigo-700 mb-4 transition-transform group-hover:scale-110">🤖</div>
+                    <h3 class="font-bold text-stone-800 mb-2">Safe Sandboxes</h3>
+                    <p class="text-stone-500 text-sm group-hover:hidden transition-opacity">Controlled testing zones.</p>
+                    <div class="hidden group-hover:block absolute inset-0 bg-indigo-700 text-white p-6 rounded-xl overflow-y-auto">
+                        <h4 class="font-bold mb-2">City-Level Sandboxes</h4>
+                        <p class="text-sm text-indigo-100">Establishment of 5 physical and digital 'sandboxes' where startups can test high-risk AI applications (like autonomous drones) under regulatory supervision before public release.</p>
                     </div>
                 </div>
             </div>
-
-            <!-- Interactive Checklist -->
-            <div class="bg-gray-900 rounded-xl p-8 shadow-lg text-white mt-8">
-                <h3 class="text-2xl font-bold mb-4 text-teal-400">Interactive Safety Check</h3>
-                <p class="mb-6 text-gray-300">Received an offer? Check off the following. If you can't check all boxes, <strong>do not proceed.</strong></p>
-                
-                <div class="space-y-4" id="safety-checklist">
-                    <label class="flex items-center space-x-3 cursor-pointer p-3 rounded hover:bg-gray-800 transition">
-                        <input type="checkbox" class="w-5 h-5 text-teal-600 rounded focus:ring-teal-500 bg-gray-700 border-gray-600 safety-check">
-                        <span>The email came from a corporate domain (e.g., @google.com), NOT @gmail or @consultancy.com.</span>
-                    </label>
-                    <label class="flex items-center space-x-3 cursor-pointer p-3 rounded hover:bg-gray-800 transition">
-                        <input type="checkbox" class="w-5 h-5 text-teal-600 rounded focus:ring-teal-500 bg-gray-700 border-gray-600 safety-check">
-                        <span>I was NOT asked to pay money for registration, laptop, or training.</span>
-                    </label>
-                    <label class="flex items-center space-x-3 cursor-pointer p-3 rounded hover:bg-gray-800 transition">
-                        <input type="checkbox" class="w-5 h-5 text-teal-600 rounded focus:ring-teal-500 bg-gray-700 border-gray-600 safety-check">
-                        <span>The interview involved a real conversation about my skills, not just a chat/text interview.</span>
-                    </label>
-                    <label class="flex items-center space-x-3 cursor-pointer p-3 rounded hover:bg-gray-800 transition">
-                        <input type="checkbox" class="w-5 h-5 text-teal-600 rounded focus:ring-teal-500 bg-gray-700 border-gray-600 safety-check">
-                        <span>I have verified the recruiter's profile on LinkedIn and it has activity/connections.</span>
-                    </label>
-                </div>
-                
-                <div id="safety-result" class="mt-6 p-4 rounded-lg bg-gray-800 text-center hidden">
-                    <!-- Dynamic Result -->
-                </div>
-            </div>
-        </div>
+        </section>
 
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-gray-50 border-t border-gray-200 mt-auto">
-        <div class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
-            <p>Jan 2026, Aryaan Chauhan's The Wall</p><a href="https://aryaan-chauhan-01.github.io/aryaanchauhan.github.io/">Portfolio</a>
-            <div class="mt-2 md:mt-0 flex space-x-4">
-                <a href="https://docs.google.com/document/d/1Ix-gNCm9N7MqYFbp7wm9kUI7AvebcBwm7b--VxFyyl4/edit?usp=sharing" class="hover:text-gray-700" >Methodology</a>
-                <a  class="hover:text-gray-700" href="mailto:aryaanchauhan01" + "@gmail.com">Report Fraud</a>  
-            </div>
+    <footer class="bg-stone-900 text-stone-400 py-6 mt-8">
+        <div class="max-w-7xl mx-auto px-4 text-center text-sm">
+            <p>Feb 2026, Aryaan Chauhan's The Wall</p><a href="https://aryaan-chauhan-01.github.io/aryaanchauhan.github.io/">Portfolio</a>
+            <p><a href="https://docs.google.com/document/d/1Ix-gNCm9N7MqYFbp7wm9kUI7AvebcBwm7b--VxFyyl4/edit?usp=sharing" class="hover:text-gray-700" >Data derived from the simulated AI Impact Summit India 2026 Source Report.</a></p>
+            <p class="mt-2"><a  class="hover:text-gray-700" href="mailto:aryaanchauhan01" + "@gmail.com">Report Fraud</a></p>
         </div>
     </footer>
 
-    <!-- JavaScript Logic -->
+    <!-- Application Logic & Data -->
     <script>
-        // --- 1. State Management ---
-        const appState = {
-            currentTab: 'overview',
-            selectedSector: null
+        // --- DATA STORE ---
+        const sectorDataDetails = {
+            'Healthcare': {
+                icon: '🏥',
+                color: '#0f766e',
+                title: 'Healthcare AI: Predictive Diagnostics',
+                gain: '+38% Efficiency',
+                decisions: [
+                    'National deployment of AI-assisted radiology screening in rural primary care centers.',
+                    'Integration of localized language models for patient history taking.',
+                    'Summit Decision: Allocation of ₹500 Cr for anonymized national health data trusts to train local models.'
+                ]
+            },
+            'Agriculture': {
+                icon: '🌾',
+                color: '#b45309',
+                title: 'AgTech: Precision Farming',
+                gain: '+25% Yield',
+                decisions: [
+                    'Rollout of satellite-based AI crop monitoring accessible via SMS for non-smartphone users.',
+                    'Dynamic AI pricing models to connect farmers directly to buyers, bypassing middlemen.',
+                    'Summit Decision: Drone-as-a-service subsidized by 50% for pesticide spraying using AI vision.'
+                ]
+            },
+            'Education': {
+                icon: '📚',
+                color: '#4338ca',
+                title: 'EduTech: Hyper-Personalization',
+                gain: '+45% Retention',
+                decisions: [
+                    'Implementation of AI tutors in 12 regional languages across 10,000 public schools.',
+                    'Automated grading systems to free up 30% of teacher time for mentorship.',
+                    'Summit Decision: Mandate to include "AI Literacy" as a core subject from grade 6 nationwide.'
+                ]
+            },
+            'Logistics': {
+                icon: '🚚',
+                color: '#0369a1',
+                title: 'Logistics: Predictive Supply Chains',
+                gain: '+30% Cost Reduction',
+                decisions: [
+                    'AI optimization for rail freight routing, reducing transit times by an average of 18 hours.',
+                    'Predictive maintenance for public transport fleets.',
+                    'Summit Decision: Implementation of unified digital waybills processed by machine vision at state borders.'
+                ]
+            }
         };
 
-        // --- 2. Data Store (Simulated Report Data for Jan 2026) ---
-        const reportData = {
-            velocity: {
-                labels: ['Jan 1-4', 'Jan 5-11', 'Jan 12-18', 'Jan 19-24'],
-                data: [45000, 98000, 115000, 84850], // Simulated weekly breakdown
-                growth: [5, 12, 18, 10] // % growth week over week
+        const infraData = {
+            compute: {
+                labels: ['2024', '2025', '2026', '2027', '2028', '2029'],
+                data: [1.2, 3.5, 7.0, 10.5, 15.0, 22.0],
+                label: 'Sovereign Compute (ExaFLOPS)',
+                borderColor: '#4338ca',
+                bgColor: 'rgba(67, 56, 202, 0.1)',
+                yAxisLabel: 'ExaFLOPS'
             },
-            regions: {
-                labels: ['Bangalore', 'NCR (Delhi/Gurgaon)', 'Mumbai', 'Hyderabad', 'Pune', 'GIFT City'],
-                data: [32, 22, 15, 14, 10, 7] // Percentage
-            },
-            sectors: [
-                {
-                    id: 'it',
-                    name: 'IT & Software Services',
-                    count: 120000,
-                    color: '#0D9488', // Teal 600
-                    growth: '+8%',
-                    roles: [
-                        { title: 'Generative AI Engineer', trend: 'Hot' },
-                        { title: 'Cybersecurity Analyst', trend: 'Stable' },
-                        { title: 'Full Stack Dev (MERN)', trend: 'High Vol' }
-                    ],
-                    salary: '₹5.5 - 9.0 LPA'
-                },
-                {
-                    id: 'bfsi',
-                    name: 'BFSI (Banking & Finance)',
-                    count: 85000,
-                    color: '#2563EB', // Blue 600
-                    growth: '+12%',
-                    roles: [
-                        { title: 'Relationship Manager', trend: 'High Vol' },
-                        { title: 'Fraud Risk Analyst', trend: 'Hot' },
-                        { title: 'Investment Advisor', trend: 'Stable' }
-                    ],
-                    salary: '₹4.0 - 7.5 LPA'
-                },
-                {
-                    id: 'mfg',
-                    name: 'Manufacturing & EV',
-                    count: 65000,
-                    color: '#D97706', // Amber 600
-                    growth: '+22%',
-                    roles: [
-                        { title: 'Battery Systems Engineer', trend: 'Very Hot' },
-                        { title: 'Plant Supervisor', trend: 'Stable' },
-                        { title: 'Quality Assurance', trend: 'Stable' }
-                    ],
-                    salary: '₹3.5 - 6.0 LPA'
-                },
-                {
-                    id: 'healthcare',
-                    name: 'Healthcare & Pharma',
-                    count: 45000,
-                    color: '#BE123C', // Rose 600
-                    growth: '+5%',
-                    roles: [
-                        { title: 'Nursing Staff', trend: 'High Vol' },
-                        { title: 'Medical Coder', trend: 'Stable' },
-                        { title: 'Biotech Researcher', trend: 'Niche' }
-                    ],
-                    salary: '₹3.0 - 8.0 LPA'
-                },
-                {
-                    id: 'retail',
-                    name: 'Retail & E-commerce',
-                    count: 27850,
-                    color: '#7C3AED', // Violet 600
-                    growth: '+15%',
-                    roles: [
-                        { title: 'Logistics Manager', trend: 'Stable' },
-                        { title: 'Digital Marketing Exec', trend: 'Hot' },
-                        { title: 'Store Operations', trend: 'High Vol' }
-                    ],
-                    salary: '₹2.5 - 5.0 LPA'
-                }
-            ]
+            energy: {
+                labels: ['2024', '2025', '2026', '2027', '2028', '2029'],
+                data: [25, 35, 45, 60, 75, 85],
+                label: 'Renewable Energy Mix (%)',
+                borderColor: '#15803d',
+                bgColor: 'rgba(21, 128, 61, 0.1)',
+                yAxisLabel: 'Percentage (%)'
+            }
         };
 
-        // --- 3. Navigation Logic ---
+        // --- STATE & INSTANCES ---
+        let sectorChartInstance = null;
+        let infraChartInstance = null;
+        let currentInfraType = 'compute';
+
+        // --- NAVIGATION LOGIC ---
         function switchTab(tabId) {
-            // Update State
-            appState.currentTab = tabId;
-
-            // Update UI Buttons
-            document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.classList.remove('active', 'bg-gray-100', 'text-teal-700', 'border-b-2', 'border-teal-700');
-                btn.classList.add('text-gray-600');
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
             });
+            // Show target tab
+            document.getElementById(tabId).classList.add('active');
 
-            // Specific styling for the active button needs to be re-applied based on the ID
+            // Update button styles
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-teal-700', 'text-white');
+                btn.classList.add('text-stone-600', 'hover:bg-stone-100');
+            });
             const activeBtn = document.getElementById(`btn-${tabId}`);
-            if(activeBtn) {
-                 activeBtn.classList.add('active');
-            }
+            activeBtn.classList.remove('text-stone-600', 'hover:bg-stone-100');
+            activeBtn.classList.add('bg-teal-700', 'text-white');
 
-            // Hide all views
-            document.getElementById('view-overview').classList.add('hidden');
-            document.getElementById('view-sectors').classList.add('hidden');
-            document.getElementById('view-scams').classList.add('hidden');
-
-            // Show selected view
-            const selectedView = document.getElementById(`view-${tabId}`);
-            selectedView.classList.remove('hidden');
-            
-            // Trigger chart resize/render if needed (Chart.js canvas sometimes needs this on display:block)
-            if (tabId === 'overview') {
-                if(velocityChartInstance) velocityChartInstance.resize();
-                if(regionChartInstance) regionChartInstance.resize();
-            }
-            if (tabId === 'sectors') {
-                if(sectorChartInstance) sectorChartInstance.resize();
-            }
-            
-            // Scroll to top
-            window.scrollTo(0,0);
+            // Render/Update charts if entering their tabs
+            if(tabId === 'sectors') renderSectorChart();
+            if(tabId === 'infrastructure') renderInfraChart();
         }
 
-        // Mobile Menu Logic
-        document.getElementById('mobile-menu-btn').addEventListener('click', () => {
-            const menu = document.getElementById('mobile-menu');
-            menu.classList.toggle('hidden');
-        });
+        // --- CHART: SECTORAL IMPACT ---
+        function renderSectorChart() {
+            if (sectorChartInstance) return; // Already rendered
 
-        // --- 4. Chart Initialization ---
-        let velocityChartInstance = null;
-        let regionChartInstance = null;
-        let sectorChartInstance = null;
+            const ctx = document.getElementById('sectorChart').getContext('2d');
+            
+            const labels = Object.keys(sectorDataDetails);
+            const data = [38, 25, 45, 30]; // Values mapping to gains
+            const bgColors = ['#0f766e', '#b45309', '#4338ca', '#0369a1'];
 
-        function initCharts() {
-            // A. Hiring Velocity Chart (Line)
-            const ctxVel = document.getElementById('velocityChart').getContext('2d');
-            velocityChartInstance = new Chart(ctxVel, {
-                type: 'line',
+            sectorChartInstance = new Chart(ctx, {
+                type: 'bar',
                 data: {
-                    labels: reportData.velocity.labels,
+                    labels: labels,
                     datasets: [{
-                        label: 'Job Postings (Count)',
-                        data: reportData.velocity.data,
-                        borderColor: '#0F766E', // Teal 700
-                        backgroundColor: 'rgba(15, 118, 110, 0.1)',
-                        borderWidth: 2,
-                        tension: 0.4,
-                        fill: true,
-                        pointBackgroundColor: '#fff',
-                        pointBorderColor: '#0F766E',
-                        pointRadius: 4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: (context) => ` ${context.formattedValue} Openings`
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: { borderDash: [2, 4], color: '#f3f4f6' },
-                            ticks: { font: { family: 'Inter' } }
-                        },
-                        x: {
-                            grid: { display: false },
-                            ticks: { font: { family: 'Inter' } }
-                        }
-                    }
-                }
-            });
-
-            // B. Regional Chart (Doughnut)
-            const ctxReg = document.getElementById('regionChart').getContext('2d');
-            regionChartInstance = new Chart(ctxReg, {
-                type: 'doughnut',
-                data: {
-                    labels: reportData.regions.labels,
-                    datasets: [{
-                        data: reportData.regions.data,
-                        backgroundColor: [
-                            '#0F766E', '#0D9488', '#14B8A6', '#2DD4BF', '#5EEAD4', '#99F6E4'
-                        ],
+                        label: 'Efficiency Gain (%)',
+                        data: data,
+                        backgroundColor: bgColors,
+                        borderRadius: 6,
                         borderWidth: 0
                     }]
                 },
@@ -654,52 +400,108 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { 
-                            position: 'right',
-                            labels: { boxWidth: 12, usePointStyle: true, font: { family: 'Inter', size: 11 } }
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) { return context.parsed.y + '% Gain'; }
+                            }
                         }
                     },
-                    cutout: '65%'
+                    scales: {
+                        y: { 
+                            beginAtZero: true, 
+                            max: 50,
+                            grid: { color: '#f5f5f4' }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    },
+                    onClick: (e, elements) => {
+                        if (elements.length > 0) {
+                            const index = elements[0].index;
+                            const sectorName = labels[index];
+                            updateSectorDetails(sectorName);
+                        }
+                    },
+                    onHover: (event, chartElement) => {
+                        event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
+                    }
                 }
             });
+        }
 
-            // C. Sector Chart (Bar - Interactive)
-            const ctxSec = document.getElementById('sectorChart').getContext('2d');
-            sectorChartInstance = new Chart(ctxSec, {
-                type: 'bar',
+        function updateSectorDetails(sectorName) {
+            const data = sectorDataDetails[sectorName];
+            const panel = document.getElementById('sector-details-panel');
+            
+            let listHTML = data.decisions.map(dec => `<li class="mb-2 pl-4 border-l-2 border-stone-300 text-stone-700 text-sm">${dec}</li>`).join('');
+
+            panel.innerHTML = `
+                <div class="animation-fade-in">
+                    <div class="flex items-center mb-4">
+                        <div class="html-icon mr-4 text-white" style="background-color: ${data.color};">${data.icon}</div>
+                        <div>
+                            <h3 class="text-xl font-bold text-stone-800" style="color: ${data.color}">${data.title}</h3>
+                            <span class="inline-block px-2 py-1 mt-1 rounded text-xs font-bold bg-stone-200 text-stone-800">${data.gain}</span>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <h4 class="font-semibold text-stone-800 mb-3">Key Strategic Decisions:</h4>
+                        <ul class="list-none m-0 p-0">
+                            ${listHTML}
+                        </ul>
+                    </div>
+                </div>
+            `;
+            
+            // Add simple inline animation class style dynamically for the update
+            if(!document.getElementById('animStyle')) {
+                const style = document.createElement('style');
+                style.id = 'animStyle';
+                style.innerHTML = `.animation-fade-in { animation: fadeIn 0.3s ease-in-out; }`;
+                document.head.appendChild(style);
+            }
+        }
+
+        // --- CHART: INFRASTRUCTURE ---
+        function renderInfraChart() {
+            if (infraChartInstance) return;
+
+            const ctx = document.getElementById('infraChart').getContext('2d');
+            const dataConfig = infraData[currentInfraType];
+
+            infraChartInstance = new Chart(ctx, {
+                type: 'line',
                 data: {
-                    labels: reportData.sectors.map(s => s.name),
+                    labels: dataConfig.labels,
                     datasets: [{
-                        label: 'Total Openings',
-                        data: reportData.sectors.map(s => s.count),
-                        backgroundColor: reportData.sectors.map(s => s.color),
-                        borderRadius: 6,
-                        barThickness: 30
+                        label: dataConfig.label,
+                        data: dataConfig.data,
+                        borderColor: dataConfig.borderColor,
+                        backgroundColor: dataConfig.bgColor,
+                        borderWidth: 3,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: dataConfig.borderColor,
+                        pointBorderWidth: 2,
+                        pointRadius: 5,
+                        fill: true,
+                        tension: 0.4 // Smooth curves
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    indexAxis: 'y', // Horizontal Bar
-                    onClick: (e, activeEls) => {
-                        if (activeEls.length > 0) {
-                            const index = activeEls[0].index;
-                            updateSectorDetails(index);
-                        }
-                    },
                     plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                afterLabel: () => 'Click bar for details'
-                            }
-                        }
+                        legend: { position: 'top' }
                     },
                     scales: {
-                        x: {
-                            grid: { borderDash: [2, 4] }
-                        },
                         y: {
+                            beginAtZero: true,
+                            title: { display: true, text: dataConfig.yAxisLabel },
+                            grid: { color: '#f5f5f4' }
+                        },
+                        x: {
                             grid: { display: false }
                         }
                     }
@@ -707,75 +509,40 @@
             });
         }
 
-        // --- 5. Interaction Logic ---
-        
-        // Update Sector Details Panel
-        function updateSectorDetails(index) {
-            const data = reportData.sectors[index];
-            const placeholder = document.getElementById('sector-placeholder');
-            const content = document.getElementById('sector-content');
+        function updateInfraChart(type) {
+            currentInfraType = type;
+            const dataConfig = infraData[type];
+            
+            // Update UI buttons
+            const btnCompute = document.getElementById('btn-infra-compute');
+            const btnEnergy = document.getElementById('btn-infra-energy');
+            const title = document.getElementById('infra-chart-title');
 
-            // Swap view
-            placeholder.classList.add('hidden');
-            content.classList.remove('hidden');
+            if(type === 'compute') {
+                btnCompute.className = "px-3 py-1 bg-indigo-600 text-white rounded text-sm transition-colors";
+                btnEnergy.className = "px-3 py-1 bg-stone-200 text-stone-700 hover:bg-stone-300 rounded text-sm transition-colors";
+                title.innerText = "Sovereign Compute Capacity (ExaFLOPS)";
+            } else {
+                btnEnergy.className = "px-3 py-1 bg-green-600 text-white rounded text-sm transition-colors";
+                btnCompute.className = "px-3 py-1 bg-stone-200 text-stone-700 hover:bg-stone-300 rounded text-sm transition-colors";
+                title.innerText = "Data Center Renewable Energy Target (%)";
+            }
 
-            // Populate Data
-            document.getElementById('detail-title').innerText = data.name;
-            document.getElementById('detail-title').className = `text-xl font-bold`; 
-            document.getElementById('detail-title').style.color = data.color;
-
-            document.getElementById('detail-growth').innerText = `${data.growth} vs Last Month`;
-            document.getElementById('detail-salary').innerText = data.salary;
-
-            // Populate Roles List
-            const rolesList = document.getElementById('detail-roles');
-            rolesList.innerHTML = '';
-            data.roles.forEach(role => {
-                const li = document.createElement('li');
-                li.className = 'flex justify-between items-center bg-gray-50 p-3 rounded border border-gray-100';
-                
-                let badgeColor = 'bg-gray-200 text-gray-700';
-                if(role.trend === 'Hot' || role.trend === 'Very Hot') badgeColor = 'bg-rose-100 text-rose-700';
-                if(role.trend === 'High Vol') badgeColor = 'bg-blue-100 text-blue-700';
-
-                li.innerHTML = `
-                    <span class="font-medium text-gray-800 text-sm">${role.title}</span>
-                    <span class="text-xs px-2 py-1 rounded ${badgeColor} font-bold">${role.trend}</span>
-                `;
-                rolesList.appendChild(li);
-            });
+            // Update Chart
+            if (infraChartInstance) {
+                infraChartInstance.data.datasets[0].label = dataConfig.label;
+                infraChartInstance.data.datasets[0].data = dataConfig.data;
+                infraChartInstance.data.datasets[0].borderColor = dataConfig.borderColor;
+                infraChartInstance.data.datasets[0].backgroundColor = dataConfig.bgColor;
+                infraChartInstance.data.datasets[0].pointBorderColor = dataConfig.borderColor;
+                infraChartInstance.options.scales.y.title.text = dataConfig.yAxisLabel;
+                infraChartInstance.update();
+            }
         }
 
-        // Safety Checklist Logic
-        const checkboxes = document.querySelectorAll('.safety-check');
-        const resultBox = document.getElementById('safety-result');
-
-        checkboxes.forEach(box => {
-            box.addEventListener('change', () => {
-                const total = checkboxes.length;
-                const checked = document.querySelectorAll('.safety-check:checked').length;
-                
-                resultBox.classList.remove('hidden');
-                
-                if (checked === total) {
-                    resultBox.className = 'mt-6 p-4 rounded-lg bg-green-900 border border-green-700 text-center';
-                    resultBox.innerHTML = `
-                        <div class="text-green-400 font-bold text-lg mb-1"><i class="fa-solid fa-check-circle"></i> Looks Safe</div>
-                        <p class="text-green-200 text-sm">Proceed with caution. Never share OTPs.</p>
-                    `;
-                } else {
-                    resultBox.className = 'mt-6 p-4 rounded-lg bg-rose-900 border border-rose-700 text-center';
-                    resultBox.innerHTML = `
-                        <div class="text-rose-400 font-bold text-lg mb-1"><i class="fa-solid fa-hand"></i> Stop immediately</div>
-                        <p class="text-rose-200 text-sm">This shows signs of a scam. Do not pay or share ID.</p>
-                    `;
-                }
-            });
-        });
-
-        // --- 6. Initialization ---
+        // Init initial view
         document.addEventListener('DOMContentLoaded', () => {
-            initCharts();
+            // Initialization is handled by showing the first tab naturally.
         });
 
     </script>
