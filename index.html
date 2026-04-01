@@ -3,266 +3,168 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Impact Summit India 2026: Interactive Report</title>
-    <meta name="description" content="AI Impact Summit India 2026: Interactive Report">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <title>India Budget Explorer: A Decade in Review (2014-2025)</title>
     
-    <!-- Chosen Palette: Warm Neutrals & Tech Teal (Base: #fdfbf7, Text: #1e293b, Accents: #0f766e, #b45309) -->
-    <!-- Application Structure Plan: A dashboard-style SPA divided into four core thematic tabs (Overview, Sectoral Impact, Infrastructure, Policy). This structure was chosen because summit reports often cover diverse, complex topics. A tabbed interface allows users to consume information in bite-sized, logical chunks without overwhelming them with a single long scroll. The interactive charts allow drill-downs into specific data points. -->
+    <!-- Chosen Palette: Warm Neutrals & Deep Accents (Stone-50 background, Slate-800 text, Teal/Amber/Indigo data accents) -->
+    <!-- Application Structure Plan: The SPA uses a top-down narrative flow. It starts with the "Macro View" (total budget size/growth) to establish scale. It transitions to the "Sectoral Shift" (stacked area/bar) to show changing priorities over the decade. Finally, it provides an "Interactive Deep Dive" allowing users to isolate specific sectors, viewing targeted growth trajectories alongside qualitative policy context. This structure guides the user from the big picture down to granular insights, maximizing comprehension of complex fiscal data. -->
     <!-- Visualization & Content Choices: 
-         1. Overview -> Goal: Inform -> KPI Cards (HTML/CSS) -> Interactive Hover -> Quick summary of summit scale.
-         2. Sectoral Impact -> Goal: Compare -> Bar Chart (Chart.js) -> Clickable bars update text panel -> Allows users to see both macro comparison and micro details per sector without SVG.
-         3. Infrastructure -> Goal: Change/Trends -> Line Chart (Chart.js) -> Toggle datasets (Compute vs Energy) -> Shows correlation over time dynamically.
-         4. Policy -> Goal: Organize -> Interactive Grid (HTML/Tailwind) -> Hover states reveal details -> Breaks down the 'Bharat AI Framework' logically. 
-         Library/Method: Chart.js for data visualization, Tailwind for layout. 
-    -->
+         1. Macro View -> Goal: Show overall budget expansion -> Viz: Mixed Bar/Line Chart -> Justification: Clearly contrasts total outlay volume (bars) against growth rate trends (line). Library: Chart.js.
+         2. Sectoral Shift -> Goal: Compare proportion and growth across key sectors -> Viz: Stacked Bar Chart -> Justification: Excellent for showing how the "pie" has grown and how individual slices (sectors) expanded relatively. Library: Chart.js.
+         3. Deep Dive -> Goal: Isolate sector trends and explain *why* -> Viz: Interactive Line Chart + Dynamic Text -> Justification: Prevents visual clutter by focusing on one sector at a time, marrying quantitative data with qualitative policy context. Library: Chart.js & Vanilla JS. -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #fdfbf7; /* Warm neutral background */
+            background-color: #fafaf9; 
             color: #1e293b;
         }
         
-        /* Required Chart Container Styling */
         .chart-container {
             position: relative;
             width: 100%;
-            max-width: 800px;
+            max-width: 1000px;
             margin-left: auto;
             margin-right: auto;
-            height: 40vh;
-            max-height: 400px;
+            height: 50vh;
+            max-height: 450px;
+            min-height: 300px;
         }
 
-        .tab-content {
-            display: none;
-            animation: fadeIn 0.4s ease-in-out;
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 40vh;
+            }
         }
         
-        .tab-content.active {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .custom-card {
-            background-color: #ffffff;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-            transition: transform 0.2s, box-shadow 0.2s;
+        html {
+            scroll-behavior: smooth;
         }
         
-        .custom-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        }
-
-        /* HTML-based icon styling (No SVG) */
-        .html-icon {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background-color: #e2e8f0;
-            font-size: 24px;
-            font-weight: bold;
-            color: #0f766e;
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
         }
     </style>
 </head>
-<body class="antialiased min-h-screen flex flex-col">
+<body class="antialiased">
 
-    <!-- Header Navigation -->
-    <header class="bg-white border-b border-stone-200 sticky top-0 z-50 shadow-sm">
+    <nav class="fixed top-0 w-full glass-card z-50 border-b border-stone-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex flex-col md:flex-row justify-between items-center py-4">
-                <div class="mb-4 md:mb-0 text-center md:text-left">
-                    <h1 class="text-2xl font-bold text-teal-800">AI Impact Summit India 2026</h1>
-                    <p class="text-sm text-stone-500 font-medium">Technological Decisions & Future Roadmap</p>
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <span class="text-xl font-bold text-slate-800 tracking-tight">Budget<span class="text-teal-600">Explorer</span></span>
                 </div>
-                <nav class="flex space-x-1 sm:space-x-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 hide-scrollbar">
-                    <button onclick="switchTab('overview')" id="btn-overview" class="tab-btn px-4 py-2 rounded-md text-sm font-semibold bg-teal-700 text-white transition-colors whitespace-nowrap">Overview</button>
-                    <button onclick="switchTab('sectors')" id="btn-sectors" class="tab-btn px-4 py-2 rounded-md text-sm font-semibold text-stone-600 hover:bg-stone-100 transition-colors whitespace-nowrap">Sectoral Impact</button>
-                    <button onclick="switchTab('infrastructure')" id="btn-infrastructure" class="tab-btn px-4 py-2 rounded-md text-sm font-semibold text-stone-600 hover:bg-stone-100 transition-colors whitespace-nowrap">Infrastructure</button>
-                    <button onclick="switchTab('policy')" id="btn-policy" class="tab-btn px-4 py-2 rounded-md text-sm font-semibold text-stone-600 hover:bg-stone-100 transition-colors whitespace-nowrap">Policy & Ethics</button>
-                </nav>
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#macro" class="text-sm font-medium text-slate-600 hover:text-teal-600 transition-colors">Macro Trends</a>
+                    <a href="#composition" class="text-sm font-medium text-slate-600 hover:text-teal-600 transition-colors">Sector Composition</a>
+                    <a href="#deepdive" class="text-sm font-medium text-slate-600 hover:text-teal-600 transition-colors">Sector Deep Dive</a>
+                </div>
             </div>
         </div>
-    </header>
+    </nav>
 
-    <!-- Main Content Area -->
-    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+    <main class="pt-24 pb-16">
+        
+        <header class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-16">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-slate-900 mb-4 leading-tight">
+                A Decade of Fiscal Policy: <br><span class="text-teal-700">India's Budget (2014-2025)</span>
+            </h1>
+            <p class="text-lg text-slate-600 leading-relaxed">
+                Explore the transformation of the Government of India's budgetary allocations over the last decade. This interactive report breaks down the shift from consumption-led expenditure to massive capital investments in infrastructure, the impact of the pandemic, and the evolving priorities of the world's fastest-growing major economy.
+            </p>
+        </header>
 
-        <!-- SECTION 1: OVERVIEW -->
-        <section id="overview" class="tab-content active">
-            <div class="mb-8 border-l-4 border-teal-600 pl-4">
-                <h2 class="text-3xl font-bold text-stone-800 mb-2">Executive Summary</h2>
-                <p class="text-stone-600 leading-relaxed max-w-4xl">
-                    This section provides a high-level overview of the historic AI Impact Summit held in New Delhi, 2026. The summit marked a pivotal moment in transitioning from AI experimentation to widespread, governed deployment. Here, you can explore the top-level quantitative outcomes, including projected economic impacts and national training targets established by key stakeholders.
+        <section id="macro" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-24 pt-8">
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-slate-800 mb-3 border-l-4 border-teal-500 pl-3">The Macro View: Expanding the Fiscal Footprint</h2>
+                <p class="text-slate-600">
+                    This section illustrates the overall expansion of the Union Budget. Over the past ten years, total expenditure has nearly tripled. Notice the distinct acceleration post-2020 as the government utilized counter-cyclical fiscal policy—spending heavily during and after the pandemic to stimulate economic recovery. The bar chart visualizes absolute expenditure (in ₹ Lakh Crores), while the line chart overlay indicates the year-on-year growth trajectory.
                 </p>
             </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-                <div class="custom-card p-6 rounded-xl border-t-4 border-t-amber-500">
-                    <div class="html-icon mb-4 bg-amber-100 text-amber-700">₹</div>
-                    <h3 class="text-stone-500 text-sm font-semibold uppercase tracking-wider">Economic Projection</h3>
-                    <p class="text-4xl font-bold text-stone-800 my-2">$500B</p>
-                    <p class="text-sm text-stone-600">Projected addition to India's GDP by 2030 through AI integration.</p>
-                </div>
-                <div class="custom-card p-6 rounded-xl border-t-4 border-t-teal-600">
-                    <div class="html-icon mb-4 bg-teal-100 text-teal-700">⚙</div>
-                    <h3 class="text-stone-500 text-sm font-semibold uppercase tracking-wider">Compute Target</h3>
-                    <p class="text-4xl font-bold text-stone-800 my-2">15 ExaFLOPS</p>
-                    <p class="text-sm text-stone-600">Target sovereign compute capacity to be built domestically by 2028.</p>
-                </div>
-                <div class="custom-card p-6 rounded-xl border-t-4 border-t-indigo-500">
-                    <div class="html-icon mb-4 bg-indigo-100 text-indigo-700">⚑</div>
-                    <h3 class="text-stone-500 text-sm font-semibold uppercase tracking-wider">Skill Development</h3>
-                    <p class="text-4xl font-bold text-stone-800 my-2">10 Million</p>
-                    <p class="text-sm text-stone-600">Professionals to be reskilled under the new National AI Workforce initiative.</p>
-                </div>
-            </div>
-
-            <div class="bg-white p-8 rounded-xl shadow-sm border border-stone-200">
-                <h3 class="text-xl font-bold text-stone-800 mb-4">Core Summit Directives</h3>
-                <ul class="space-y-4">
-                    <li class="flex items-start">
-                        <span class="inline-block w-6 h-6 rounded-full bg-teal-100 text-teal-800 font-bold text-center leading-6 mr-3 mt-0.5">1</span>
-                        <p class="text-stone-700"><strong>Establishment of "Bharat AI":</strong> A consortium of public-private partnerships focused on developing foundational models trained on highly diverse, multilingual Indian datasets to prevent cultural bias.</p>
-                    </li>
-                    <li class="flex items-start">
-                        <span class="inline-block w-6 h-6 rounded-full bg-teal-100 text-teal-800 font-bold text-center leading-6 mr-3 mt-0.5">2</span>
-                        <p class="text-stone-700"><strong>Mandatory Watermarking:</strong> All synthetic media generated by commercial APIs must now carry cryptographic watermarks to combat deepfakes ahead of the upcoming electoral cycles.</p>
-                    </li>
-                    <li class="flex items-start">
-                        <span class="inline-block w-6 h-6 rounded-full bg-teal-100 text-teal-800 font-bold text-center leading-6 mr-3 mt-0.5">3</span>
-                        <p class="text-stone-700"><strong>Green AI Mandate:</strong> Data centers expanding AI clusters must source a minimum of 60% of their energy from renewable sources to mitigate environmental impact.</p>
-                    </li>
-                </ul>
-            </div>
-        </section>
-
-        <!-- SECTION 2: SECTORAL IMPACT -->
-        <section id="sectors" class="tab-content">
-             <div class="mb-8 border-l-4 border-amber-500 pl-4">
-                <h2 class="text-3xl font-bold text-stone-800 mb-2">Sector-Specific Transformations</h2>
-                <p class="text-stone-600 leading-relaxed max-w-4xl">
-                    The summit identified four critical sectors for immediate AI deployment. This section allows you to interact with the projected efficiency gains. <strong>Click on any bar in the chart below</strong> to view specific technological decisions and case studies relevant to that industry.
-                </p>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
-                    <h3 class="text-lg font-bold text-stone-800 mb-4 text-center">Projected Efficiency Gains by 2028 (%)</h3>
-                    <div class="chart-container">
-                        <canvas id="sectorChart"></canvas>
-                    </div>
-                    <p class="text-xs text-center text-stone-500 mt-4">* Click a bar to view sector details</p>
-                </div>
-
-                <div class="bg-stone-100 p-8 rounded-xl border border-stone-200 h-full flex flex-col justify-center" id="sector-details-panel">
-                    <div class="text-center text-stone-500 mb-4">
-                        <div class="html-icon bg-stone-200 text-stone-400 mb-4 mx-auto" style="width:64px; height:64px; font-size:32px;">👈</div>
-                        <p class="text-lg">Select a sector from the chart to view specific technological decisions and impact strategies.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- SECTION 3: INFRASTRUCTURE -->
-        <section id="infrastructure" class="tab-content">
-            <div class="mb-8 border-l-4 border-indigo-500 pl-4">
-                <h2 class="text-3xl font-bold text-stone-800 mb-2">Infrastructure & Compute Roadmap</h2>
-                <p class="text-stone-600 leading-relaxed max-w-4xl">
-                    AI scales only as well as its underlying hardware. This section details the Summit's resolution on hardware sovereignty and sustainable scaling. Use the toggles below the chart to explore the relationship between projected compute capacity growth and the aggressive transition toward renewable energy to power these data centers.
-                </p>
-            </div>
-
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200 mb-8">
-                <div class="flex justify-between items-center mb-6 flex-wrap gap-4">
-                    <h3 class="text-lg font-bold text-stone-800" id="infra-chart-title">Sovereign Compute Capacity (ExaFLOPS)</h3>
-                    <div class="flex space-x-2">
-                        <button onclick="updateInfraChart('compute')" id="btn-infra-compute" class="px-3 py-1 bg-indigo-600 text-white rounded text-sm transition-colors">Compute Growth</button>
-                        <button onclick="updateInfraChart('energy')" id="btn-infra-energy" class="px-3 py-1 bg-stone-200 text-stone-700 hover:bg-stone-300 rounded text-sm transition-colors">Renewable Energy Mix</button>
+            
+            <div class="glass-card rounded-2xl p-6 md:p-8">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h3 class="text-lg font-semibold text-slate-800">Total Union Budget Outlay</h3>
+                        <p class="text-sm text-slate-500">Figures in ₹ Lakh Crores (Approximate)</p>
                     </div>
                 </div>
                 <div class="chart-container">
-                    <canvas id="infraChart"></canvas>
+                    <canvas id="macroChart"></canvas>
                 </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                 <div class="p-6 bg-stone-50 rounded-lg border border-stone-200">
-                    <h4 class="font-bold text-indigo-800 mb-2">The 'Yotta' Initiative</h4>
-                    <p class="text-sm text-stone-600">A $3 Billion public fund launched to subsidize local manufacturing of AI accelerators and tensor processing units, reducing reliance on foreign chip imports by 40% by 2029.</p>
-                 </div>
-                 <div class="p-6 bg-stone-50 rounded-lg border border-stone-200">
-                    <h4 class="font-bold text-green-700 mb-2">Cooling Innovations</h4>
-                    <p class="text-sm text-stone-600">Mandatory adoption of closed-loop liquid cooling systems for all new Tier 4 data centers dedicated to AI workloads to conserve water resources in arid regions.</p>
-                 </div>
             </div>
         </section>
 
-        <!-- SECTION 4: POLICY & ETHICS -->
-        <section id="policy" class="tab-content">
-             <div class="mb-8 border-l-4 border-rose-500 pl-4">
-                <h2 class="text-3xl font-bold text-stone-800 mb-2">The Bharat AI Ethics Framework</h2>
-                <p class="text-stone-600 leading-relaxed max-w-4xl">
-                    Technological advancement without guardrails presents severe risks. The Summit finalized the 'Bharat AI Framework', a set of binding guidelines for enterprise AI. This section organizes these policies into four core pillars. Hover over each pillar to understand the regulatory mechanisms put in place.
+        <section id="composition" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-24 pt-8">
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-slate-800 mb-3 border-l-4 border-amber-500 pl-3">Sectoral Shift: Reprioritizing the Nation's Wealth</h2>
+                <p class="text-slate-600">
+                    How is the expanded budget being distributed? This visualization focuses on five critical pillars: Defense, Infrastructure (Roads & Railways), Agriculture, Health, and Education. By stacking the allocations, you can observe not just the growth of individual sectors, but their share relative to each other. The most striking trend is the explosive growth of the Infrastructure block, reflecting a deliberate policy shift towards capital expenditure (CapEx) to build long-term economic assets.
                 </p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <!-- Pillar 1 -->
-                <div class="group relative bg-white border border-stone-200 rounded-xl p-6 hover:bg-rose-50 transition-colors cursor-pointer min-h-[250px] flex flex-col items-center justify-center text-center">
-                    <div class="html-icon bg-rose-100 text-rose-700 mb-4 transition-transform group-hover:scale-110">⚖️</div>
-                    <h3 class="font-bold text-stone-800 mb-2">Algorithmic Fairness</h3>
-                    <p class="text-stone-500 text-sm group-hover:hidden transition-opacity">Addressing bias in models.</p>
-                    <div class="hidden group-hover:block absolute inset-0 bg-rose-700 text-white p-6 rounded-xl overflow-y-auto">
-                        <h4 class="font-bold mb-2">Mandatory Audits</h4>
-                        <p class="text-sm text-rose-100">Models used in credit scoring, hiring, and law enforcement must undergo bi-annual fairness audits by certified third-party agencies. Datasets must reflect regional demographic diversity.</p>
+            <div class="glass-card rounded-2xl p-6 md:p-8">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h3 class="text-lg font-semibold text-slate-800">Allocation Across Key Sectors</h3>
+                        <p class="text-sm text-slate-500">Comparative view (₹ Lakh Crores)</p>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="compositionChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <section id="deepdive" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16 pt-8">
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-slate-800 mb-3 border-l-4 border-indigo-500 pl-3">Interactive Deep Dive: Policy Behind the Numbers</h2>
+                <p class="text-slate-600">
+                    Numbers alone only tell half the story. Select a specific sector from the dropdown below to isolate its budgetary trajectory over the decade. Alongside the customized chart, you will find qualitative insights explaining the major policy decisions, flagship schemes, and external events (like COVID-19) that drove these financial allocations.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-1 glass-card rounded-2xl p-6 md:p-8 flex flex-col justify-start">
+                    <label for="sectorSelect" class="block text-sm font-medium text-slate-700 mb-2">Select Sector to Analyze:</label>
+                    <select id="sectorSelect" class="w-full bg-slate-50 border border-slate-300 text-slate-900 text-sm rounded-lg focus:ring-teal-500 focus:border-teal-500 block p-3 mb-6 transition-colors cursor-pointer outline-none">
+                        <option value="Infrastructure">Infrastructure (Roads & Rail)</option>
+                        <option value="Defense">Defense</option>
+                        <option value="Agriculture">Agriculture & Allied</option>
+                        <option value="Health">Health & Family Welfare</option>
+                        <option value="Education">Education</option>
+                    </select>
+
+                    <div id="insightBox" class="bg-indigo-50/50 rounded-xl p-5 border border-indigo-100">
+                        <h4 id="insightTitle" class="text-lg font-semibold text-indigo-900 mb-2">Infrastructure (Roads & Rail)</h4>
+                        <p id="insightText" class="text-sm text-slate-700 leading-relaxed">
+                            Loading insights...
+                        </p>
+                    </div>
+                    
+                    <div class="mt-6 grid grid-cols-2 gap-4">
+                        <div class="bg-slate-50 rounded-lg p-4 border border-slate-100 text-center">
+                            <span class="block text-xs text-slate-500 uppercase font-semibold tracking-wider mb-1">2014 Allocation</span>
+                            <span id="statStart" class="text-xl font-bold text-slate-800">--</span>
+                        </div>
+                        <div class="bg-slate-50 rounded-lg p-4 border border-slate-100 text-center">
+                            <span class="block text-xs text-slate-500 uppercase font-semibold tracking-wider mb-1">2025 Allocation</span>
+                            <span id="statEnd" class="text-xl font-bold text-teal-600">--</span>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Pillar 2 -->
-                <div class="group relative bg-white border border-stone-200 rounded-xl p-6 hover:bg-teal-50 transition-colors cursor-pointer min-h-[250px] flex flex-col items-center justify-center text-center">
-                    <div class="html-icon bg-teal-100 text-teal-700 mb-4 transition-transform group-hover:scale-110">🛡️</div>
-                    <h3 class="font-bold text-stone-800 mb-2">Data Sovereignty</h3>
-                    <p class="text-stone-500 text-sm group-hover:hidden transition-opacity">Protecting citizen data.</p>
-                    <div class="hidden group-hover:block absolute inset-0 bg-teal-700 text-white p-6 rounded-xl overflow-y-auto">
-                        <h4 class="font-bold mb-2">Localization Laws</h4>
-                        <p class="text-sm text-teal-100">Critical personal data used for training foundational models must reside on servers physically located within Indian borders. Strict penalties introduced for unauthorized cross-border transfers.</p>
-                    </div>
-                </div>
-
-                <!-- Pillar 3 -->
-                <div class="group relative bg-white border border-stone-200 rounded-xl p-6 hover:bg-amber-50 transition-colors cursor-pointer min-h-[250px] flex flex-col items-center justify-center text-center">
-                    <div class="html-icon bg-amber-100 text-amber-700 mb-4 transition-transform group-hover:scale-110">👁️</div>
-                    <h3 class="font-bold text-stone-800 mb-2">Transparency</h3>
-                    <p class="text-stone-500 text-sm group-hover:hidden transition-opacity">Explainable AI mandates.</p>
-                    <div class="hidden group-hover:block absolute inset-0 bg-amber-600 text-white p-6 rounded-xl overflow-y-auto">
-                        <h4 class="font-bold mb-2">"Right to Explainability"</h4>
-                        <p class="text-sm text-amber-100">Citizens have the right to request a human-readable explanation of decisions made by AI systems regarding loan rejections, healthcare triage, or university admissions.</p>
-                    </div>
-                </div>
-
-                <!-- Pillar 4 -->
-                <div class="group relative bg-white border border-stone-200 rounded-xl p-6 hover:bg-indigo-50 transition-colors cursor-pointer min-h-[250px] flex flex-col items-center justify-center text-center">
-                    <div class="html-icon bg-indigo-100 text-indigo-700 mb-4 transition-transform group-hover:scale-110">🤖</div>
-                    <h3 class="font-bold text-stone-800 mb-2">Safe Sandboxes</h3>
-                    <p class="text-stone-500 text-sm group-hover:hidden transition-opacity">Controlled testing zones.</p>
-                    <div class="hidden group-hover:block absolute inset-0 bg-indigo-700 text-white p-6 rounded-xl overflow-y-auto">
-                        <h4 class="font-bold mb-2">City-Level Sandboxes</h4>
-                        <p class="text-sm text-indigo-100">Establishment of 5 physical and digital 'sandboxes' where startups can test high-risk AI applications (like autonomous drones) under regulatory supervision before public release.</p>
+                <div class="lg:col-span-2 glass-card rounded-2xl p-6 md:p-8">
+                    <h3 id="deepDiveChartTitle" class="text-lg font-semibold text-slate-800 mb-6">Sector Trajectory</h3>
+                    <div class="chart-container">
+                        <canvas id="deepDiveChart"></canvas>
                     </div>
                 </div>
             </div>
@@ -270,281 +172,209 @@
 
     </main>
 
-    <footer class="bg-stone-900 text-stone-400 py-6 mt-8">
-        <div class="max-w-7xl mx-auto px-4 text-center text-sm">
-            <p>Feb 2026, Aryaan Chauhan's The Wall</p><p><a class="hover:text-gray-700" href="https://aryaan-chauhan-01.github.io/aryaanchauhan.github.io/">Portfolio</a></p>
-            <p><a href="https://docs.google.com/document/d/18e65sgeYt25biQ8KvKvc06-_xDl4fgDGFZOT5m5VCN4/edit?usp=sharing" class="hover:text-gray-700" >Data derived from the simulated AI Impact Summit India 2026 Source Report.</a></p>
-            <p class="mt-2"><a  class="hover:text-gray-700" href="mailto:aryaanchauhan01" + "@gmail.com">Report Fraud</a></p>
+    <footer class="bg-slate-900 text-slate-400 py-8 border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p class="text-sm">Interactive Analysis generated based on publicly available historical Union Budget data trends (2014-2025).</p>
+            <p class="text-xs mt-2 text-slate-500">Values are approximate representations in ₹ Lakh Crores for illustrative analytical purposes.</p>
         </div>
     </footer>
 
-    <!-- Application Logic & Data -->
     <script>
-        // --- DATA STORE ---
-        const sectorDataDetails = {
-            'Healthcare': {
-                icon: '🏥',
-                color: '#0f766e',
-                title: 'Healthcare AI: Predictive Diagnostics',
-                gain: '+38% Efficiency',
-                decisions: [
-                    'National deployment of AI-assisted radiology screening in rural primary care centers.',
-                    'Integration of localized language models for patient history taking.',
-                    'Summit Decision: Allocation of ₹500 Cr for anonymized national health data trusts to train local models.'
-                ]
-            },
-            'Agriculture': {
-                icon: '🌾',
-                color: '#b45309',
-                title: 'AgTech: Precision Farming',
-                gain: '+25% Yield',
-                decisions: [
-                    'Rollout of satellite-based AI crop monitoring accessible via SMS for non-smartphone users.',
-                    'Dynamic AI pricing models to connect farmers directly to buyers, bypassing middlemen.',
-                    'Summit Decision: Drone-as-a-service subsidized by 50% for pesticide spraying using AI vision.'
-                ]
-            },
-            'Education': {
-                icon: '📚',
-                color: '#4338ca',
-                title: 'EduTech: Hyper-Personalization',
-                gain: '+45% Retention',
-                decisions: [
-                    'Implementation of AI tutors in 12 regional languages across 10,000 public schools.',
-                    'Automated grading systems to free up 30% of teacher time for mentorship.',
-                    'Summit Decision: Mandate to include "AI Literacy" as a core subject from grade 6 nationwide.'
-                ]
-            },
-            'Logistics': {
-                icon: '🚚',
-                color: '#0369a1',
-                title: 'Logistics: Predictive Supply Chains',
-                gain: '+30% Cost Reduction',
-                decisions: [
-                    'AI optimization for rail freight routing, reducing transit times by an average of 18 hours.',
-                    'Predictive maintenance for public transport fleets.',
-                    'Summit Decision: Implementation of unified digital waybills processed by machine vision at state borders.'
-                ]
-            }
-        };
-
-        const infraData = {
-            compute: {
-                labels: ['2024', '2025', '2026', '2027', '2028', '2029'],
-                data: [1.2, 3.5, 7.0, 10.5, 15.0, 22.0],
-                label: 'Sovereign Compute (ExaFLOPS)',
-                borderColor: '#4338ca',
-                bgColor: 'rgba(67, 56, 202, 0.1)',
-                yAxisLabel: 'ExaFLOPS'
-            },
-            energy: {
-                labels: ['2024', '2025', '2026', '2027', '2028', '2029'],
-                data: [25, 35, 45, 60, 75, 85],
-                label: 'Renewable Energy Mix (%)',
-                borderColor: '#15803d',
-                bgColor: 'rgba(21, 128, 61, 0.1)',
-                yAxisLabel: 'Percentage (%)'
-            }
-        };
-
-        // --- STATE & INSTANCES ---
-        let sectorChartInstance = null;
-        let infraChartInstance = null;
-        let currentInfraType = 'compute';
-
-        // --- NAVIGATION LOGIC ---
-        function switchTab(tabId) {
-            // Hide all tabs
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            // Show target tab
-            document.getElementById(tabId).classList.add('active');
-
-            // Update button styles
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('bg-teal-700', 'text-white');
-                btn.classList.add('text-stone-600', 'hover:bg-stone-100');
-            });
-            const activeBtn = document.getElementById(`btn-${tabId}`);
-            activeBtn.classList.remove('text-stone-600', 'hover:bg-stone-100');
-            activeBtn.classList.add('bg-teal-700', 'text-white');
-
-            // Render/Update charts if entering their tabs
-            if(tabId === 'sectors') renderSectorChart();
-            if(tabId === 'infrastructure') renderInfraChart();
-        }
-
-        // --- CHART: SECTORAL IMPACT ---
-        function renderSectorChart() {
-            if (sectorChartInstance) return; // Already rendered
-
-            const ctx = document.getElementById('sectorChart').getContext('2d');
-            
-            const labels = Object.keys(sectorDataDetails);
-            const data = [38, 25, 45, 30]; // Values mapping to gains
-            const bgColors = ['#0f766e', '#b45309', '#4338ca', '#0369a1'];
-
-            sectorChartInstance = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Efficiency Gain (%)',
-                        data: data,
-                        backgroundColor: bgColors,
-                        borderRadius: 6,
-                        borderWidth: 0
-                    }]
+        const rawData = {
+            labels: ['2014-15', '2015-16', '2016-17', '2017-18', '2018-19', '2019-20', '2020-21', '2021-22', '2022-23', '2023-24', '2024-25'],
+            totalBudget: [16.6, 17.7, 19.7, 21.4, 24.4, 26.8, 34.5, 37.9, 41.8, 45.0, 48.2],
+            totalGrowth: [0, 6.6, 11.2, 8.6, 14.0, 9.8, 28.7, 9.8, 10.2, 7.6, 7.1], 
+            sectors: {
+                'Infrastructure': {
+                    data: [1.8, 2.1, 2.4, 3.2, 4.0, 4.5, 5.1, 6.8, 8.4, 10.0, 11.1],
+                    color: '#0f766e', 
+                    bg: 'rgba(15, 118, 110, 0.2)',
+                    text: 'The standout sector of the decade. Recognizing that poor infrastructure bottlenecks growth, the government executed a massive, sustained push in capital expenditure. Heavy investments in the Ministry of Road Transport and Highways (MoRTH) and a complete overhaul of Railways funding (merging the Railway budget with the Union budget in 2017) have acted as the primary engine for economic stimulation, creating a significant multiplier effect.'
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) { return context.parsed.y + '% Gain'; }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: { 
-                            beginAtZero: true, 
-                            max: 50,
-                            grid: { color: '#f5f5f4' }
-                        },
-                        x: {
-                            grid: { display: false }
-                        }
-                    },
-                    onClick: (e, elements) => {
-                        if (elements.length > 0) {
-                            const index = elements[0].index;
-                            const sectorName = labels[index];
-                            updateSectorDetails(sectorName);
-                        }
-                    },
-                    onHover: (event, chartElement) => {
-                        event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
-                    }
+                'Defense': {
+                    data: [2.29, 2.46, 2.58, 2.59, 2.95, 3.18, 4.71, 4.78, 5.25, 5.93, 6.21],
+                    color: '#334155', 
+                    bg: 'rgba(51, 65, 85, 0.2)',
+                    text: 'Defense allocations have seen consistent absolute growth to modernize the armed forces and manage increasing geopolitical complexities. A major structural shift occurred midway through the decade with the "Atmanirbhar Bharat" (self-reliant India) initiative, which actively redirects capital procurement budgets towards domestic defense manufacturing, alongside heavy investments in border infrastructure.'
+                },
+                'Agriculture': {
+                    data: [0.31, 0.25, 0.44, 0.51, 0.57, 1.30, 1.34, 1.23, 1.24, 1.25, 1.27],
+                    color: '#b45309', 
+                    bg: 'rgba(180, 83, 9, 0.2)',
+                    text: 'The trajectory shows a distinct, massive structural jump around 2019-2020. This was almost entirely driven by the introduction of PM-KISAN, a flagship direct benefit transfer (DBT) scheme providing income support to farmers. Since that massive recalibration of the baseline, funding has stabilized, with continued focus on rural credit, crop insurance, and agricultural infrastructure funds.'
+                },
+                'Health': {
+                    data: [0.35, 0.33, 0.39, 0.48, 0.54, 0.64, 0.82, 0.85, 0.86, 0.89, 0.90],
+                    color: '#be123c', 
+                    bg: 'rgba(190, 18, 60, 0.2)',
+                    text: 'Health spending saw gradual, incremental increases in the early half of the decade. The data clearly shows a sharp, reactive spike beginning in 2020-21 due to the COVID-19 pandemic response (vaccination drives, emergency health system packages). Crucially, post-pandemic, the baseline has not dropped back down, reflecting an enduring commitment to systemic upgrades via schemes like PM-ABHIM.'
+                },
+                'Education': {
+                    data: [0.68, 0.67, 0.72, 0.80, 0.83, 0.94, 0.85, 0.88, 1.04, 1.12, 1.20],
+                    color: '#4338ca', 
+                    bg: 'rgba(67, 56, 202, 0.2)',
+                    text: 'Education allocation has grown steadily, generally keeping pace with overall economic growth. The dip around the pandemic years reflects short-term fiscal reprioritization towards emergency health and welfare. Recent increases align with the rollout of the comprehensive National Education Policy (NEP) 2020, focusing on both foundational literacy and higher education infrastructure.'
                 }
-            });
-        }
-
-        function updateSectorDetails(sectorName) {
-            const data = sectorDataDetails[sectorName];
-            const panel = document.getElementById('sector-details-panel');
-            
-            let listHTML = data.decisions.map(dec => `<li class="mb-2 pl-4 border-l-2 border-stone-300 text-stone-700 text-sm">${dec}</li>`).join('');
-
-            panel.innerHTML = `
-                <div class="animation-fade-in">
-                    <div class="flex items-center mb-4">
-                        <div class="html-icon mr-4 text-white" style="background-color: ${data.color};">${data.icon}</div>
-                        <div>
-                            <h3 class="text-xl font-bold text-stone-800" style="color: ${data.color}">${data.title}</h3>
-                            <span class="inline-block px-2 py-1 mt-1 rounded text-xs font-bold bg-stone-200 text-stone-800">${data.gain}</span>
-                        </div>
-                    </div>
-                    <div class="mt-4">
-                        <h4 class="font-semibold text-stone-800 mb-3">Key Strategic Decisions:</h4>
-                        <ul class="list-none m-0 p-0">
-                            ${listHTML}
-                        </ul>
-                    </div>
-                </div>
-            `;
-            
-            // Add simple inline animation class style dynamically for the update
-            if(!document.getElementById('animStyle')) {
-                const style = document.createElement('style');
-                style.id = 'animStyle';
-                style.innerHTML = `.animation-fade-in { animation: fadeIn 0.3s ease-in-out; }`;
-                document.head.appendChild(style);
             }
-        }
+        };
 
-        // --- CHART: INFRASTRUCTURE ---
-        function renderInfraChart() {
-            if (infraChartInstance) return;
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.color = '#64748b';
+        Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(15, 23, 42, 0.9)';
+        Chart.defaults.plugins.tooltip.padding = 12;
+        Chart.defaults.plugins.tooltip.cornerRadius = 8;
 
-            const ctx = document.getElementById('infraChart').getContext('2d');
-            const dataConfig = infraData[currentInfraType];
-
-            infraChartInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: dataConfig.labels,
-                    datasets: [{
-                        label: dataConfig.label,
-                        data: dataConfig.data,
-                        borderColor: dataConfig.borderColor,
-                        backgroundColor: dataConfig.bgColor,
+        const ctxMacro = document.getElementById('macroChart').getContext('2d');
+        new Chart(ctxMacro, {
+            type: 'bar',
+            data: {
+                labels: rawData.labels,
+                datasets: [
+                    {
+                        type: 'line',
+                        label: 'Y-o-Y Growth (%)',
+                        data: rawData.totalGrowth,
+                        borderColor: '#b45309',
+                        backgroundColor: '#b45309',
                         borderWidth: 3,
-                        pointBackgroundColor: '#fff',
-                        pointBorderColor: dataConfig.borderColor,
-                        pointBorderWidth: 2,
-                        pointRadius: 5,
-                        fill: true,
-                        tension: 0.4 // Smooth curves
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'top' }
+                        tension: 0.4,
+                        yAxisID: 'y1',
+                        pointRadius: 4,
+                        pointBackgroundColor: '#fff'
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: { display: true, text: dataConfig.yAxisLabel },
-                            grid: { color: '#f5f5f4' }
-                        },
-                        x: {
-                            grid: { display: false }
+                    {
+                        type: 'bar',
+                        label: 'Total Budget (₹ Lakh Cr)',
+                        data: rawData.totalBudget,
+                        backgroundColor: '#0f766e',
+                        borderRadius: 4,
+                        yAxisID: 'y'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                scales: {
+                    x: { grid: { display: false } },
+                    y: { 
+                        type: 'linear', 
+                        display: true, 
+                        position: 'left',
+                        title: { display: true, text: '₹ Lakh Crores' },
+                        grid: { color: 'rgba(0,0,0,0.05)' }
+                    },
+                    y1: { 
+                        type: 'linear', 
+                        display: true, 
+                        position: 'right',
+                        title: { display: true, text: 'Growth %' },
+                        grid: { drawOnChartArea: false }
+                    }
+                }
+            }
+        });
+
+        const ctxComp = document.getElementById('compositionChart').getContext('2d');
+        new Chart(ctxComp, {
+            type: 'bar',
+            data: {
+                labels: rawData.labels,
+                datasets: [
+                    { label: 'Infrastructure', data: rawData.sectors['Infrastructure'].data, backgroundColor: rawData.sectors['Infrastructure'].color },
+                    { label: 'Defense', data: rawData.sectors['Defense'].data, backgroundColor: rawData.sectors['Defense'].color },
+                    { label: 'Agriculture', data: rawData.sectors['Agriculture'].data, backgroundColor: rawData.sectors['Agriculture'].color },
+                    { label: 'Education', data: rawData.sectors['Education'].data, backgroundColor: rawData.sectors['Education'].color },
+                    { label: 'Health', data: rawData.sectors['Health'].data, backgroundColor: rawData.sectors['Health'].color }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { stacked: true, grid: { display: false } },
+                    y: { 
+                        stacked: true, 
+                        title: { display: true, text: '₹ Lakh Crores' },
+                        grid: { color: 'rgba(0,0,0,0.05)' }
+                    }
+                },
+                plugins: {
+                    tooltip: { mode: 'index', intersect: false }
+                }
+            }
+        });
+
+        const ctxDeepDive = document.getElementById('deepDiveChart').getContext('2d');
+        let deepDiveChartObj = new Chart(ctxDeepDive, {
+            type: 'line',
+            data: {
+                labels: rawData.labels,
+                datasets: [{
+                    label: 'Allocation',
+                    data: rawData.sectors['Infrastructure'].data,
+                    borderColor: rawData.sectors['Infrastructure'].color,
+                    backgroundColor: rawData.sectors['Infrastructure'].bg,
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 5,
+                    pointBackgroundColor: '#fff',
+                    pointBorderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { grid: { display: false } },
+                    y: { 
+                        title: { display: true, text: '₹ Lakh Crores' },
+                        grid: { color: 'rgba(0,0,0,0.05)' },
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) { return '₹ ' + context.parsed.y + ' Lakh Cr'; }
                         }
                     }
                 }
-            });
-        }
-
-        function updateInfraChart(type) {
-            currentInfraType = type;
-            const dataConfig = infraData[type];
-            
-            // Update UI buttons
-            const btnCompute = document.getElementById('btn-infra-compute');
-            const btnEnergy = document.getElementById('btn-infra-energy');
-            const title = document.getElementById('infra-chart-title');
-
-            if(type === 'compute') {
-                btnCompute.className = "px-3 py-1 bg-indigo-600 text-white rounded text-sm transition-colors";
-                btnEnergy.className = "px-3 py-1 bg-stone-200 text-stone-700 hover:bg-stone-300 rounded text-sm transition-colors";
-                title.innerText = "Sovereign Compute Capacity (ExaFLOPS)";
-            } else {
-                btnEnergy.className = "px-3 py-1 bg-green-600 text-white rounded text-sm transition-colors";
-                btnCompute.className = "px-3 py-1 bg-stone-200 text-stone-700 hover:bg-stone-300 rounded text-sm transition-colors";
-                title.innerText = "Data Center Renewable Energy Target (%)";
             }
-
-            // Update Chart
-            if (infraChartInstance) {
-                infraChartInstance.data.datasets[0].label = dataConfig.label;
-                infraChartInstance.data.datasets[0].data = dataConfig.data;
-                infraChartInstance.data.datasets[0].borderColor = dataConfig.borderColor;
-                infraChartInstance.data.datasets[0].backgroundColor = dataConfig.bgColor;
-                infraChartInstance.data.datasets[0].pointBorderColor = dataConfig.borderColor;
-                infraChartInstance.options.scales.y.title.text = dataConfig.yAxisLabel;
-                infraChartInstance.update();
-            }
-        }
-
-        // Init initial view
-        document.addEventListener('DOMContentLoaded', () => {
-            // Initialization is handled by showing the first tab naturally.
         });
+
+        const sectorSelect = document.getElementById('sectorSelect');
+        const insightTitle = document.getElementById('insightTitle');
+        const insightText = document.getElementById('insightText');
+        const statStart = document.getElementById('statStart');
+        const statEnd = document.getElementById('statEnd');
+        const chartTitle = document.getElementById('deepDiveChartTitle');
+
+        function updateDeepDive(sectorName) {
+            const dataObj = rawData.sectors[sectorName];
+            
+            insightTitle.innerText = sectorName;
+            insightText.innerText = dataObj.text;
+            
+            statStart.innerText = '₹ ' + dataObj.data[0] + ' LCr';
+            statEnd.innerText = '₹ ' + dataObj.data[dataObj.data.length - 1] + ' LCr';
+            
+            chartTitle.innerText = sectorName + ' Allocation Trajectory';
+
+            deepDiveChartObj.data.datasets[0].data = dataObj.data;
+            deepDiveChartObj.data.datasets[0].borderColor = dataObj.color;
+            deepDiveChartObj.data.datasets[0].backgroundColor = dataObj.bg;
+            deepDiveChartObj.update();
+        }
+
+        sectorSelect.addEventListener('change', (e) => {
+            updateDeepDive(e.target.value);
+        });
+
+        updateDeepDive('Infrastructure');
 
     </script>
 </body>
