@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Impact Summit India 2026: Interactive Report</title>
+    <meta name="description" content="AI Impact Summit India 2026: Interactive Report">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Chosen Palette: Warm Neutrals & Tech Teal (Base: #fdfbf7, Text: #1e293b, Accents: #0f766e, #b45309) -->
+    <!-- Application Structure Plan: A dashboard-style SPA divided into four core thematic tabs (Overview, Sectoral Impact, Infrastructure, Policy). This structure was chosen because summit reports often cover diverse, complex topics. A tabbed interface allows users to consume information in bite-sized, logical chunks without overwhelming them with a single long scroll. The interactive charts allow drill-downs into specific data points. -->
+    <!-- Visualization & Content Choices: 
+         1. Overview -> Goal: Inform -> KPI Cards (HTML/CSS) -> Interactive Hover -> Quick summary of summit scale.
+         2. Sectoral Impact -> Goal: Compare -> Bar Chart (Chart.js) -> Clickable bars update text panel -> Allows users to see both macro comparison and micro details per sector without SVG.
+         3. Infrastructure -> Goal: Change/Trends -> Line Chart (Chart.js) -> Toggle datasets (Compute vs Energy) -> Shows correlation over time dynamically.
+         4. Policy -> Goal: Organize -> Interactive Grid (HTML/Tailwind) -> Hover states reveal details -> Breaks down the 'Bharat AI Framework' logically. 
+         Library/Method: Chart.js for data visualization, Tailwind for layout. 
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fdfbf7; /* Warm neutral background */
+            color: #1e293b;
+        }
+        
+        /* Required Chart Container Styling */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 40vh;
+            max-height: 400px;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .custom-card {
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .custom-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* HTML-based icon styling (No SVG) */
+        .html-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background-color: #e2e8f0;
+            font-size: 24px;
+            font-weight: bold;
+            color: #0f766e;
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col">
+
+    <!-- Header Navigation -->
+    <header class="bg-white border-b border-stone-200 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center py-4">
+                <div class="mb-4 md:mb-0 text-center md:text-left">
+                    <h1 class="text-2xl font-bold text-teal-800">AI Impact Summit India 2026</h1>
+                    <p class="text-sm text-stone-500 font-medium">Technological Decisions & Future Roadmap</p>
+                </div>
+                <nav class="flex space-x-1 sm:space-x-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 hide-scrollbar">
+                    <button onclick="switchTab('overview')" id="btn-overview" class="tab-btn px-4 py-2 rounded-md text-sm font-semibold bg-teal-700 text-white transition-colors whitespace-nowrap">Overview</button>
+                    <button onclick="switchTab('sectors')" id="btn-sectors" class="tab-btn px-4 py-2 rounded-md text-sm font-semibold text-stone-600 hover:bg-stone-100 transition-colors whitespace-nowrap">Sectoral Impact</button>
+                    <button onclick="switchTab('infrastructure')" id="btn-infrastructure" class="tab-btn px-4 py-2 rounded-md text-sm font-semibold text-stone-600 hover:bg-stone-100 transition-colors whitespace-nowrap">Infrastructure</button>
+                    <button onclick="switchTab('policy')" id="btn-policy" class="tab-btn px-4 py-2 rounded-md text-sm font-semibold text-stone-600 hover:bg-stone-100 transition-colors whitespace-nowrap">Policy & Ethics</button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+
+        <!-- SECTION 1: OVERVIEW -->
+        <section id="overview" class="tab-content active">
+            <div class="mb-8 border-l-4 border-teal-600 pl-4">
+                <h2 class="text-3xl font-bold text-stone-800 mb-2">Executive Summary</h2>
+                <p class="text-stone-600 leading-relaxed max-w-4xl">
+                    This section provides a high-level overview of the historic AI Impact Summit held in New Delhi, 2026. The summit marked a pivotal moment in transitioning from AI experimentation to widespread, governed deployment. Here, you can explore the top-level quantitative outcomes, including projected economic impacts and national training targets established by key stakeholders.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                <div class="custom-card p-6 rounded-xl border-t-4 border-t-amber-500">
+                    <div class="html-icon mb-4 bg-amber-100 text-amber-700">₹</div>
+                    <h3 class="text-stone-500 text-sm font-semibold uppercase tracking-wider">Economic Projection</h3>
+                    <p class="text-4xl font-bold text-stone-800 my-2">$500B</p>
+                    <p class="text-sm text-stone-600">Projected addition to India's GDP by 2030 through AI integration.</p>
+                </div>
+                <div class="custom-card p-6 rounded-xl border-t-4 border-t-teal-600">
+                    <div class="html-icon mb-4 bg-teal-100 text-teal-700">⚙</div>
+                    <h3 class="text-stone-500 text-sm font-semibold uppercase tracking-wider">Compute Target</h3>
+                    <p class="text-4xl font-bold text-stone-800 my-2">15 ExaFLOPS</p>
+                    <p class="text-sm text-stone-600">Target sovereign compute capacity to be built domestically by 2028.</p>
+                </div>
+                <div class="custom-card p-6 rounded-xl border-t-4 border-t-indigo-500">
+                    <div class="html-icon mb-4 bg-indigo-100 text-indigo-700">⚑</div>
+                    <h3 class="text-stone-500 text-sm font-semibold uppercase tracking-wider">Skill Development</h3>
+                    <p class="text-4xl font-bold text-stone-800 my-2">10 Million</p>
+                    <p class="text-sm text-stone-600">Professionals to be reskilled under the new National AI Workforce initiative.</p>
+                </div>
+            </div>
+
+            <div class="bg-white p-8 rounded-xl shadow-sm border border-stone-200">
+                <h3 class="text-xl font-bold text-stone-800 mb-4">Core Summit Directives</h3>
+                <ul class="space-y-4">
+                    <li class="flex items-start">
+                        <span class="inline-block w-6 h-6 rounded-full bg-teal-100 text-teal-800 font-bold text-center leading-6 mr-3 mt-0.5">1</span>
+                        <p class="text-stone-700"><strong>Establishment of "Bharat AI":</strong> A consortium of public-private partnerships focused on developing foundational models trained on highly diverse, multilingual Indian datasets to prevent cultural bias.</p>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="inline-block w-6 h-6 rounded-full bg-teal-100 text-teal-800 font-bold text-center leading-6 mr-3 mt-0.5">2</span>
+                        <p class="text-stone-700"><strong>Mandatory Watermarking:</strong> All synthetic media generated by commercial APIs must now carry cryptographic watermarks to combat deepfakes ahead of the upcoming electoral cycles.</p>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="inline-block w-6 h-6 rounded-full bg-teal-100 text-teal-800 font-bold text-center leading-6 mr-3 mt-0.5">3</span>
+                        <p class="text-stone-700"><strong>Green AI Mandate:</strong> Data centers expanding AI clusters must source a minimum of 60% of their energy from renewable sources to mitigate environmental impact.</p>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- SECTION 2: SECTORAL IMPACT -->
+        <section id="sectors" class="tab-content">
+             <div class="mb-8 border-l-4 border-amber-500 pl-4">
+                <h2 class="text-3xl font-bold text-stone-800 mb-2">Sector-Specific Transformations</h2>
+                <p class="text-stone-600 leading-relaxed max-w-4xl">
+                    The summit identified four critical sectors for immediate AI deployment. This section allows you to interact with the projected efficiency gains. <strong>Click on any bar in the chart below</strong> to view specific technological decisions and case studies relevant to that industry.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                    <h3 class="text-lg font-bold text-stone-800 mb-4 text-center">Projected Efficiency Gains by 2028 (%)</h3>
+                    <div class="chart-container">
+                        <canvas id="sectorChart"></canvas>
+                    </div>
+                    <p class="text-xs text-center text-stone-500 mt-4">* Click a bar to view sector details</p>
+                </div>
+
+                <div class="bg-stone-100 p-8 rounded-xl border border-stone-200 h-full flex flex-col justify-center" id="sector-details-panel">
+                    <div class="text-center text-stone-500 mb-4">
+                        <div class="html-icon bg-stone-200 text-stone-400 mb-4 mx-auto" style="width:64px; height:64px; font-size:32px;">👈</div>
+                        <p class="text-lg">Select a sector from the chart to view specific technological decisions and impact strategies.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: INFRASTRUCTURE -->
+        <section id="infrastructure" class="tab-content">
+            <div class="mb-8 border-l-4 border-indigo-500 pl-4">
+                <h2 class="text-3xl font-bold text-stone-800 mb-2">Infrastructure & Compute Roadmap</h2>
+                <p class="text-stone-600 leading-relaxed max-w-4xl">
+                    AI scales only as well as its underlying hardware. This section details the Summit's resolution on hardware sovereignty and sustainable scaling. Use the toggles below the chart to explore the relationship between projected compute capacity growth and the aggressive transition toward renewable energy to power these data centers.
+                </p>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200 mb-8">
+                <div class="flex justify-between items-center mb-6 flex-wrap gap-4">
+                    <h3 class="text-lg font-bold text-stone-800" id="infra-chart-title">Sovereign Compute Capacity (ExaFLOPS)</h3>
+                    <div class="flex space-x-2">
+                        <button onclick="updateInfraChart('compute')" id="btn-infra-compute" class="px-3 py-1 bg-indigo-600 text-white rounded text-sm transition-colors">Compute Growth</button>
+                        <button onclick="updateInfraChart('energy')" id="btn-infra-energy" class="px-3 py-1 bg-stone-200 text-stone-700 hover:bg-stone-300 rounded text-sm transition-colors">Renewable Energy Mix</button>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="infraChart"></canvas>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                 <div class="p-6 bg-stone-50 rounded-lg border border-stone-200">
+                    <h4 class="font-bold text-indigo-800 mb-2">The 'Yotta' Initiative</h4>
+                    <p class="text-sm text-stone-600">A $3 Billion public fund launched to subsidize local manufacturing of AI accelerators and tensor processing units, reducing reliance on foreign chip imports by 40% by 2029.</p>
+                 </div>
+                 <div class="p-6 bg-stone-50 rounded-lg border border-stone-200">
+                    <h4 class="font-bold text-green-700 mb-2">Cooling Innovations</h4>
+                    <p class="text-sm text-stone-600">Mandatory adoption of closed-loop liquid cooling systems for all new Tier 4 data centers dedicated to AI workloads to conserve water resources in arid regions.</p>
+                 </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: POLICY & ETHICS -->
+        <section id="policy" class="tab-content">
+             <div class="mb-8 border-l-4 border-rose-500 pl-4">
+                <h2 class="text-3xl font-bold text-stone-800 mb-2">The Bharat AI Ethics Framework</h2>
+                <p class="text-stone-600 leading-relaxed max-w-4xl">
+                    Technological advancement without guardrails presents severe risks. The Summit finalized the 'Bharat AI Framework', a set of binding guidelines for enterprise AI. This section organizes these policies into four core pillars. Hover over each pillar to understand the regulatory mechanisms put in place.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Pillar 1 -->
+                <div class="group relative bg-white border border-stone-200 rounded-xl p-6 hover:bg-rose-50 transition-colors cursor-pointer min-h-[250px] flex flex-col items-center justify-center text-center">
+                    <div class="html-icon bg-rose-100 text-rose-700 mb-4 transition-transform group-hover:scale-110">⚖️</div>
+                    <h3 class="font-bold text-stone-800 mb-2">Algorithmic Fairness</h3>
+                    <p class="text-stone-500 text-sm group-hover:hidden transition-opacity">Addressing bias in models.</p>
+                    <div class="hidden group-hover:block absolute inset-0 bg-rose-700 text-white p-6 rounded-xl overflow-y-auto">
+                        <h4 class="font-bold mb-2">Mandatory Audits</h4>
+                        <p class="text-sm text-rose-100">Models used in credit scoring, hiring, and law enforcement must undergo bi-annual fairness audits by certified third-party agencies. Datasets must reflect regional demographic diversity.</p>
+                    </div>
+                </div>
+
+                <!-- Pillar 2 -->
+                <div class="group relative bg-white border border-stone-200 rounded-xl p-6 hover:bg-teal-50 transition-colors cursor-pointer min-h-[250px] flex flex-col items-center justify-center text-center">
+                    <div class="html-icon bg-teal-100 text-teal-700 mb-4 transition-transform group-hover:scale-110">🛡️</div>
+                    <h3 class="font-bold text-stone-800 mb-2">Data Sovereignty</h3>
+                    <p class="text-stone-500 text-sm group-hover:hidden transition-opacity">Protecting citizen data.</p>
+                    <div class="hidden group-hover:block absolute inset-0 bg-teal-700 text-white p-6 rounded-xl overflow-y-auto">
+                        <h4 class="font-bold mb-2">Localization Laws</h4>
+                        <p class="text-sm text-teal-100">Critical personal data used for training foundational models must reside on servers physically located within Indian borders. Strict penalties introduced for unauthorized cross-border transfers.</p>
+                    </div>
+                </div>
+
+                <!-- Pillar 3 -->
+                <div class="group relative bg-white border border-stone-200 rounded-xl p-6 hover:bg-amber-50 transition-colors cursor-pointer min-h-[250px] flex flex-col items-center justify-center text-center">
+                    <div class="html-icon bg-amber-100 text-amber-700 mb-4 transition-transform group-hover:scale-110">👁️</div>
+                    <h3 class="font-bold text-stone-800 mb-2">Transparency</h3>
+                    <p class="text-stone-500 text-sm group-hover:hidden transition-opacity">Explainable AI mandates.</p>
+                    <div class="hidden group-hover:block absolute inset-0 bg-amber-600 text-white p-6 rounded-xl overflow-y-auto">
+                        <h4 class="font-bold mb-2">"Right to Explainability"</h4>
+                        <p class="text-sm text-amber-100">Citizens have the right to request a human-readable explanation of decisions made by AI systems regarding loan rejections, healthcare triage, or university admissions.</p>
+                    </div>
+                </div>
+
+                <!-- Pillar 4 -->
+                <div class="group relative bg-white border border-stone-200 rounded-xl p-6 hover:bg-indigo-50 transition-colors cursor-pointer min-h-[250px] flex flex-col items-center justify-center text-center">
+                    <div class="html-icon bg-indigo-100 text-indigo-700 mb-4 transition-transform group-hover:scale-110">🤖</div>
+                    <h3 class="font-bold text-stone-800 mb-2">Safe Sandboxes</h3>
+                    <p class="text-stone-500 text-sm group-hover:hidden transition-opacity">Controlled testing zones.</p>
+                    <div class="hidden group-hover:block absolute inset-0 bg-indigo-700 text-white p-6 rounded-xl overflow-y-auto">
+                        <h4 class="font-bold mb-2">City-Level Sandboxes</h4>
+                        <p class="text-sm text-indigo-100">Establishment of 5 physical and digital 'sandboxes' where startups can test high-risk AI applications (like autonomous drones) under regulatory supervision before public release.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-stone-900 text-stone-400 py-6 mt-8">
+        <div class="max-w-7xl mx-auto px-4 text-center text-sm">
+            <p>Feb 2026, Aryaan Chauhan's The Wall</p><p><a class="hover:text-gray-700" href="https://aryaan-chauhan-01.github.io/aryaanchauhan.github.io/">Portfolio</a></p>
+            <p><a href="https://docs.google.com/document/d/18e65sgeYt25biQ8KvKvc06-_xDl4fgDGFZOT5m5VCN4/edit?usp=sharing" class="hover:text-gray-700" >Data derived from the simulated AI Impact Summit India 2026 Source Report.</a></p>
+            <p class="mt-2"><a  class="hover:text-gray-700" href="mailto:aryaanchauhan01" + "@gmail.com">Report Fraud</a></p>
+        </div>
+    </footer>
+
+    <!-- Application Logic & Data -->
+    <script>
+        // --- DATA STORE ---
+        const sectorDataDetails = {
+            'Healthcare': {
+                icon: '🏥',
+                color: '#0f766e',
+                title: 'Healthcare AI: Predictive Diagnostics',
+                gain: '+38% Efficiency',
+                decisions: [
+                    'National deployment of AI-assisted radiology screening in rural primary care centers.',
+                    'Integration of localized language models for patient history taking.',
+                    'Summit Decision: Allocation of ₹500 Cr for anonymized national health data trusts to train local models.'
+                ]
+            },
+            'Agriculture': {
+                icon: '🌾',
+                color: '#b45309',
+                title: 'AgTech: Precision Farming',
+                gain: '+25% Yield',
+                decisions: [
+                    'Rollout of satellite-based AI crop monitoring accessible via SMS for non-smartphone users.',
+                    'Dynamic AI pricing models to connect farmers directly to buyers, bypassing middlemen.',
+                    'Summit Decision: Drone-as-a-service subsidized by 50% for pesticide spraying using AI vision.'
+                ]
+            },
+            'Education': {
+                icon: '📚',
+                color: '#4338ca',
+                title: 'EduTech: Hyper-Personalization',
+                gain: '+45% Retention',
+                decisions: [
+                    'Implementation of AI tutors in 12 regional languages across 10,000 public schools.',
+                    'Automated grading systems to free up 30% of teacher time for mentorship.',
+                    'Summit Decision: Mandate to include "AI Literacy" as a core subject from grade 6 nationwide.'
+                ]
+            },
+            'Logistics': {
+                icon: '🚚',
+                color: '#0369a1',
+                title: 'Logistics: Predictive Supply Chains',
+                gain: '+30% Cost Reduction',
+                decisions: [
+                    'AI optimization for rail freight routing, reducing transit times by an average of 18 hours.',
+                    'Predictive maintenance for public transport fleets.',
+                    'Summit Decision: Implementation of unified digital waybills processed by machine vision at state borders.'
+                ]
+            }
+        };
+
+        const infraData = {
+            compute: {
+                labels: ['2024', '2025', '2026', '2027', '2028', '2029'],
+                data: [1.2, 3.5, 7.0, 10.5, 15.0, 22.0],
+                label: 'Sovereign Compute (ExaFLOPS)',
+                borderColor: '#4338ca',
+                bgColor: 'rgba(67, 56, 202, 0.1)',
+                yAxisLabel: 'ExaFLOPS'
+            },
+            energy: {
+                labels: ['2024', '2025', '2026', '2027', '2028', '2029'],
+                data: [25, 35, 45, 60, 75, 85],
+                label: 'Renewable Energy Mix (%)',
+                borderColor: '#15803d',
+                bgColor: 'rgba(21, 128, 61, 0.1)',
+                yAxisLabel: 'Percentage (%)'
+            }
+        };
+
+        // --- STATE & INSTANCES ---
+        let sectorChartInstance = null;
+        let infraChartInstance = null;
+        let currentInfraType = 'compute';
+
+        // --- NAVIGATION LOGIC ---
+        function switchTab(tabId) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            // Show target tab
+            document.getElementById(tabId).classList.add('active');
+
+            // Update button styles
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-teal-700', 'text-white');
+                btn.classList.add('text-stone-600', 'hover:bg-stone-100');
+            });
+            const activeBtn = document.getElementById(`btn-${tabId}`);
+            activeBtn.classList.remove('text-stone-600', 'hover:bg-stone-100');
+            activeBtn.classList.add('bg-teal-700', 'text-white');
+
+            // Render/Update charts if entering their tabs
+            if(tabId === 'sectors') renderSectorChart();
+            if(tabId === 'infrastructure') renderInfraChart();
+        }
+
+        // --- CHART: SECTORAL IMPACT ---
+        function renderSectorChart() {
+            if (sectorChartInstance) return; // Already rendered
+
+            const ctx = document.getElementById('sectorChart').getContext('2d');
+            
+            const labels = Object.keys(sectorDataDetails);
+            const data = [38, 25, 45, 30]; // Values mapping to gains
+            const bgColors = ['#0f766e', '#b45309', '#4338ca', '#0369a1'];
+
+            sectorChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Efficiency Gain (%)',
+                        data: data,
+                        backgroundColor: bgColors,
+                        borderRadius: 6,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) { return context.parsed.y + '% Gain'; }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { 
+                            beginAtZero: true, 
+                            max: 50,
+                            grid: { color: '#f5f5f4' }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    },
+                    onClick: (e, elements) => {
+                        if (elements.length > 0) {
+                            const index = elements[0].index;
+                            const sectorName = labels[index];
+                            updateSectorDetails(sectorName);
+                        }
+                    },
+                    onHover: (event, chartElement) => {
+                        event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
+                    }
+                }
+            });
+        }
+
+        function updateSectorDetails(sectorName) {
+            const data = sectorDataDetails[sectorName];
+            const panel = document.getElementById('sector-details-panel');
+            
+            let listHTML = data.decisions.map(dec => `<li class="mb-2 pl-4 border-l-2 border-stone-300 text-stone-700 text-sm">${dec}</li>`).join('');
+
+            panel.innerHTML = `
+                <div class="animation-fade-in">
+                    <div class="flex items-center mb-4">
+                        <div class="html-icon mr-4 text-white" style="background-color: ${data.color};">${data.icon}</div>
+                        <div>
+                            <h3 class="text-xl font-bold text-stone-800" style="color: ${data.color}">${data.title}</h3>
+                            <span class="inline-block px-2 py-1 mt-1 rounded text-xs font-bold bg-stone-200 text-stone-800">${data.gain}</span>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <h4 class="font-semibold text-stone-800 mb-3">Key Strategic Decisions:</h4>
+                        <ul class="list-none m-0 p-0">
+                            ${listHTML}
+                        </ul>
+                    </div>
+                </div>
+            `;
+            
+            // Add simple inline animation class style dynamically for the update
+            if(!document.getElementById('animStyle')) {
+                const style = document.createElement('style');
+                style.id = 'animStyle';
+                style.innerHTML = `.animation-fade-in { animation: fadeIn 0.3s ease-in-out; }`;
+                document.head.appendChild(style);
+            }
+        }
+
+        // --- CHART: INFRASTRUCTURE ---
+        function renderInfraChart() {
+            if (infraChartInstance) return;
+
+            const ctx = document.getElementById('infraChart').getContext('2d');
+            const dataConfig = infraData[currentInfraType];
+
+            infraChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dataConfig.labels,
+                    datasets: [{
+                        label: dataConfig.label,
+                        data: dataConfig.data,
+                        borderColor: dataConfig.borderColor,
+                        backgroundColor: dataConfig.bgColor,
+                        borderWidth: 3,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: dataConfig.borderColor,
+                        pointBorderWidth: 2,
+                        pointRadius: 5,
+                        fill: true,
+                        tension: 0.4 // Smooth curves
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top' }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: dataConfig.yAxisLabel },
+                            grid: { color: '#f5f5f4' }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateInfraChart(type) {
+            currentInfraType = type;
+            const dataConfig = infraData[type];
+            
+            // Update UI buttons
+            const btnCompute = document.getElementById('btn-infra-compute');
+            const btnEnergy = document.getElementById('btn-infra-energy');
+            const title = document.getElementById('infra-chart-title');
+
+            if(type === 'compute') {
+                btnCompute.className = "px-3 py-1 bg-indigo-600 text-white rounded text-sm transition-colors";
+                btnEnergy.className = "px-3 py-1 bg-stone-200 text-stone-700 hover:bg-stone-300 rounded text-sm transition-colors";
+                title.innerText = "Sovereign Compute Capacity (ExaFLOPS)";
+            } else {
+                btnEnergy.className = "px-3 py-1 bg-green-600 text-white rounded text-sm transition-colors";
+                btnCompute.className = "px-3 py-1 bg-stone-200 text-stone-700 hover:bg-stone-300 rounded text-sm transition-colors";
+                title.innerText = "Data Center Renewable Energy Target (%)";
+            }
+
+            // Update Chart
+            if (infraChartInstance) {
+                infraChartInstance.data.datasets[0].label = dataConfig.label;
+                infraChartInstance.data.datasets[0].data = dataConfig.data;
+                infraChartInstance.data.datasets[0].borderColor = dataConfig.borderColor;
+                infraChartInstance.data.datasets[0].backgroundColor = dataConfig.bgColor;
+                infraChartInstance.data.datasets[0].pointBorderColor = dataConfig.borderColor;
+                infraChartInstance.options.scales.y.title.text = dataConfig.yAxisLabel;
+                infraChartInstance.update();
+            }
+        }
+
+        // Init initial view
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialization is handled by showing the first tab naturally.
+        });
+      
+
+    </script>
+</body>
+</html>
