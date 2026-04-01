@@ -1,381 +1,555 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>India Budget Explorer: A Decade in Review (2014-2025)</title>
+    <title>India Budget Explorer: A Decade of Expenditure (2014 - 2026)</title>
     
-    <!-- Chosen Palette: Warm Neutrals & Deep Accents (Stone-50 background, Slate-800 text, Teal/Amber/Indigo data accents) -->
-    <!-- Application Structure Plan: The SPA uses a top-down narrative flow. It starts with the "Macro View" (total budget size/growth) to establish scale. It transitions to the "Sectoral Shift" (stacked area/bar) to show changing priorities over the decade. Finally, it provides an "Interactive Deep Dive" allowing users to isolate specific sectors, viewing targeted growth trajectories alongside qualitative policy context. This structure guides the user from the big picture down to granular insights, maximizing comprehension of complex fiscal data. -->
-    <!-- Visualization & Content Choices: 
-         1. Macro View -> Goal: Show overall budget expansion -> Viz: Mixed Bar/Line Chart -> Justification: Clearly contrasts total outlay volume (bars) against growth rate trends (line). Library: Chart.js.
-         2. Sectoral Shift -> Goal: Compare proportion and growth across key sectors -> Viz: Stacked Bar Chart -> Justification: Excellent for showing how the "pie" has grown and how individual slices (sectors) expanded relatively. Library: Chart.js.
-         3. Deep Dive -> Goal: Isolate sector trends and explain *why* -> Viz: Interactive Line Chart + Dynamic Text -> Justification: Prevents visual clutter by focusing on one sector at a time, marrying quantitative data with qualitative policy context. Library: Chart.js & Vanilla JS. -->
-    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
-
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind Config & Custom CSS -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'], },
+                    colors: {
+                        warm: {
+                            50: '#fafaf9',
+                            100: '#f5f5f4',
+                            200: '#e7e5e4',
+                            300: '#d6d3d1',
+                            400: '#a8a29e',
+                            500: '#78716c',
+                            600: '#57534e',
+                            700: '#44403c',
+                            800: '#292524',
+                            900: '#1c1917',
+                        },
+                        accent: {
+                            light: '#fcd34d', // Amber 300
+                            DEFAULT: '#d97706', // Amber 600
+                            dark: '#b45309', // Amber 700
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
     <style>
+        /* CSS Requirements from Prompt */
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #fafaf9; 
-            color: #1e293b;
+            background-color: #fafaf9; /* warm-50 */
+            color: #292524; /* warm-800 */
         }
         
         .chart-container {
             position: relative;
             width: 100%;
-            max-width: 1000px;
+            max-width: 800px;
             margin-left: auto;
             margin-right: auto;
-            height: 50vh;
-            max-height: 450px;
-            min-height: 300px;
+            height: 350px;
+            max-height: 400px;
+            padding: 10px;
         }
 
-        @media (max-width: 768px) {
+        @media (min-width: 768px) {
             .chart-container {
-                height: 40vh;
+                height: 400px;
             }
         }
-        
-        html {
-            scroll-behavior: smooth;
+
+        .chart-container canvas {
+            max-width: 100% !important;
+            max-height: 100% !important;
         }
-        
+
+        /* Interactive UI Elements */
         .glass-card {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(231, 229, 228, 0.5); /* warm-200 */
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
         }
+
+        .nav-link {
+            transition: all 0.3s ease;
+        }
+        .nav-link:hover {
+            color: #d97706; /* accent */
+        }
+
+        /* Hide scrollbar for clean horizontal scrolling areas if any */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body class="antialiased">
+<body class="font-sans antialiased text-warm-800 relative">
 
-    <nav class="fixed top-0 w-full glass-card z-50 border-b border-stone-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <span class="text-xl font-bold text-slate-800 tracking-tight">Budget<span class="text-teal-600">Explorer</span></span>
-                </div>
-                <div class="hidden md:flex items-center space-x-8">
-                    <a href="#macro" class="text-sm font-medium text-slate-600 hover:text-teal-600 transition-colors">Macro Trends</a>
-                    <a href="#composition" class="text-sm font-medium text-slate-600 hover:text-teal-600 transition-colors">Sector Composition</a>
-                    <a href="#deepdive" class="text-sm font-medium text-slate-600 hover:text-teal-600 transition-colors">Sector Deep Dive</a>
-                </div>
+    <!-- Chosen Palette: Warm Neutrals with Amber Accents (Stone/Amber) -->
+    <!-- Application Structure Plan: A single-page dashboard designed for linear storytelling followed by deep exploration. 
+         1. 'Executive Summary' sets the baseline numbers. 
+         2. 'Macro Trends' uses a line chart to show the massive scale of growth over 12 years. 
+         3. 'The CapEx Shift' uses a stacked bar chart to illustrate the qualitative improvement in spending (the most critical narrative of Indian budgets). 
+         4. 'Sectoral Breakdown' provides interactive drill-down via a dynamic doughnut chart, letting users see where the money goes year-by-year. 
+         This structure moves the user from the "What" (Total size) to the "How" (Quality) to the "Where" (Sectors). -->
+    <!-- Visualization & Content Choices: 
+         - Goal: Show scale over time -> Viz: Line Chart (Chart.js) -> Interaction: Toggle between Absolute and Growth % -> Justifies showing absolute trajectory vs momentum. 
+         - Goal: Highlight structural shift -> Viz: Stacked Bar Chart (Chart.js) -> Interaction: Hover tooltips showing percentage share -> Justifies showing the ratio of Revenue vs Capital.
+         - Goal: Sectoral allocation -> Viz: Doughnut Chart (Chart.js) -> Interaction: Year selector dropdown updating the chart and narrative text dynamically -> Justifies showing composition in a specific timeframe. 
+         All visualizations use Canvas (Chart.js), NO SVG or Mermaid used, supporting the designed dashboard structure. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <!-- Navigation (Sticky) -->
+    <nav class="fixed top-0 w-full z-50 glass-card border-b border-warm-200 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center">
+            <div class="text-xl font-bold tracking-tight text-warm-900 flex items-center gap-2">
+                <span class="text-2xl">🏛️</span> India Budget Explorer
             </div>
+            <ul class="flex space-x-6 mt-4 md:mt-0 text-sm font-medium text-warm-600">
+                <li><a href="#overview" class="nav-link">Overview</a></li>
+                <li><a href="#trends" class="nav-link">Macro Trends</a></li>
+                <li><a href="#capex" class="nav-link">The CapEx Shift</a></li>
+                <li><a href="#sectors" class="nav-link">Sectoral Allocation</a></li>
+            </ul>
         </div>
     </nav>
 
-    <main class="pt-24 pb-16">
-        
-        <header class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-16">
-            <h1 class="text-4xl md:text-5xl font-extrabold text-slate-900 mb-4 leading-tight">
-                A Decade of Fiscal Policy: <br><span class="text-teal-700">India's Budget (2014-2025)</span>
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-20 space-y-16">
+
+        <!-- Header / Hero Section -->
+        <header class="text-center max-w-3xl mx-auto space-y-4" id="overview">
+            <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-warm-900">
+                A Decade of Expenditure
             </h1>
-            <p class="text-lg text-slate-600 leading-relaxed">
-                Explore the transformation of the Government of India's budgetary allocations over the last decade. This interactive report breaks down the shift from consumption-led expenditure to massive capital investments in infrastructure, the impact of the pandemic, and the evolving priorities of the world's fastest-growing major economy.
+            <p class="text-lg text-warm-600">
+                Analyzing the Government of India's fiscal journey from 2014-15 to 2025-26. 
+                Explore how the size, quality, and direction of national spending have evolved over twelve years.
             </p>
         </header>
 
-        <section id="macro" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-24 pt-8">
-            <div class="mb-8">
-                <h2 class="text-2xl font-bold text-slate-800 mb-3 border-l-4 border-teal-500 pl-3">The Macro View: Expanding the Fiscal Footprint</h2>
-                <p class="text-slate-600">
-                    This section illustrates the overall expansion of the Union Budget. Over the past ten years, total expenditure has nearly tripled. Notice the distinct acceleration post-2020 as the government utilized counter-cyclical fiscal policy—spending heavily during and after the pandemic to stimulate economic recovery. The bar chart visualizes absolute expenditure (in ₹ Lakh Crores), while the line chart overlay indicates the year-on-year growth trajectory.
+        <!-- Executive Summary KPIs -->
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="glass-card rounded-2xl p-6 text-center">
+                <div class="text-3xl mb-2">📈</div>
+                <h3 class="text-sm font-semibold text-warm-500 uppercase tracking-wider">Total Expenditure (25-26)</h3>
+                <div class="text-4xl font-bold text-warm-900 mt-2">₹51.5<span class="text-xl text-warm-500 font-medium"> L Cr</span></div>
+                <p class="text-sm text-warm-500 mt-2">Up from ₹16.6 L Cr in '14-'15</p>
+            </div>
+            <div class="glass-card rounded-2xl p-6 text-center border-b-4 border-accent">
+                <div class="text-3xl mb-2">🏗️</div>
+                <h3 class="text-sm font-semibold text-warm-500 uppercase tracking-wider">Capital Expenditure Growth</h3>
+                <div class="text-4xl font-bold text-warm-900 mt-2">6x<span class="text-xl text-warm-500 font-medium"> Increase</span></div>
+                <p class="text-sm text-warm-500 mt-2">Focus on infrastructure & assets</p>
+            </div>
+            <div class="glass-card rounded-2xl p-6 text-center">
+                <div class="text-3xl mb-2">📊</div>
+                <h3 class="text-sm font-semibold text-warm-500 uppercase tracking-wider">Avg. Annual Growth</h3>
+                <div class="text-4xl font-bold text-warm-900 mt-2">~10.8<span class="text-xl text-warm-500 font-medium">%</span></div>
+                <p class="text-sm text-warm-500 mt-2">Compound Annual Growth Rate (CAGR)</p>
+            </div>
+        </section>
+
+        <hr class="border-warm-200">
+
+        <!-- Section 1: Macro Trends -->
+        <section id="trends" class="space-y-6 scroll-mt-32">
+            <div class="max-w-3xl">
+                <h2 class="text-3xl font-bold text-warm-900">The Expanding Fiscal Footprint</h2>
+                <p class="mt-4 text-warm-600">
+                    This section maps the overall growth in government spending. The data reveals a steady climb, 
+                    punctuated by a massive fiscal stimulus during the pandemic years (2020-22), establishing a permanently higher baseline for government outlay.
                 </p>
             </div>
-            
-            <div class="glass-card rounded-2xl p-6 md:p-8">
-                <div class="flex justify-between items-center mb-6">
-                    <div>
-                        <h3 class="text-lg font-semibold text-slate-800">Total Union Budget Outlay</h3>
-                        <p class="text-sm text-slate-500">Figures in ₹ Lakh Crores (Approximate)</p>
+
+            <div class="glass-card rounded-2xl p-6">
+                <div class="flex justify-between items-center mb-6 flex-wrap gap-4">
+                    <h3 class="text-xl font-semibold text-warm-800">Total Expenditure Trajectory</h3>
+                    <div class="flex bg-warm-100 rounded-lg p-1">
+                        <button id="btnTrendAbs" class="px-4 py-2 text-sm font-medium rounded-md bg-white shadow-sm text-accent-dark transition-colors">Absolute (₹ L Cr)</button>
+                        <button id="btnTrendYoY" class="px-4 py-2 text-sm font-medium rounded-md text-warm-600 hover:text-warm-900 transition-colors">YoY Growth (%)</button>
                     </div>
                 </div>
+                <!-- CHART CONTAINER 1 -->
                 <div class="chart-container">
-                    <canvas id="macroChart"></canvas>
+                    <canvas id="trendChart"></canvas>
+                </div>
+                <p id="trendContextText" class="text-sm text-warm-500 mt-4 text-center italic">
+                    Showing absolute expenditure in ₹ Lakh Crores. Notice the steep acceleration starting 2020-21.
+                </p>
+            </div>
+        </section>
+
+        <!-- Section 2: Revenue vs Capital -->
+        <section id="capex" class="space-y-6 scroll-mt-32">
+            <div class="max-w-3xl">
+                <h2 class="text-3xl font-bold text-warm-900">The Quality of Expenditure</h2>
+                <p class="mt-4 text-warm-600">
+                    Not all spending is equal. <strong>Revenue Expenditure</strong> goes towards daily operations (salaries, pensions, interest). 
+                    <strong>Capital Expenditure (CapEx)</strong> creates assets (roads, railways, defense equipment). The defining feature of recent budgets has been the deliberate shift towards CapEx to drive long-term economic growth.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
+                <div class="lg:col-span-2 glass-card rounded-2xl p-6">
+                    <h3 class="text-xl font-semibold text-warm-800 mb-4">Revenue vs. Capital Spending</h3>
+                    <!-- CHART CONTAINER 2 -->
+                    <div class="chart-container">
+                        <canvas id="qualityChart"></canvas>
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    <div class="glass-card rounded-xl p-5 border-l-4 border-accent-dark">
+                        <h4 class="font-bold text-warm-900">The 2014 Baseline</h4>
+                        <p class="text-sm text-warm-600 mt-2">In 2014-15, Capital Expenditure formed roughly <strong>11.8%</strong> of the total budget. The focus was heavily skewed towards sustaining operations and welfare.</p>
+                    </div>
+                    <div class="glass-card rounded-xl p-5 border-l-4 border-accent">
+                        <h4 class="font-bold text-warm-900">The Infrastructure Push</h4>
+                        <p class="text-sm text-warm-600 mt-2">By 2025-26, CapEx share is projected to be nearly <strong>24%</strong>. This structural shift indicates a focus on capital formation, crowding-in private investment, and logistics efficiency.</p>
+                    </div>
                 </div>
             </div>
         </section>
 
-        <section id="composition" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-24 pt-8">
-            <div class="mb-8">
-                <h2 class="text-2xl font-bold text-slate-800 mb-3 border-l-4 border-amber-500 pl-3">Sectoral Shift: Reprioritizing the Nation's Wealth</h2>
-                <p class="text-slate-600">
-                    How is the expanded budget being distributed? This visualization focuses on five critical pillars: Defense, Infrastructure (Roads & Railways), Agriculture, Health, and Education. By stacking the allocations, you can observe not just the growth of individual sectors, but their share relative to each other. The most striking trend is the explosive growth of the Infrastructure block, reflecting a deliberate policy shift towards capital expenditure (CapEx) to build long-term economic assets.
+        <!-- Section 3: Sectoral Allocation -->
+        <section id="sectors" class="space-y-6 scroll-mt-32">
+            <div class="max-w-3xl">
+                <h2 class="text-3xl font-bold text-warm-900">Where Does the Rupee Go?</h2>
+                <p class="mt-4 text-warm-600">
+                    Explore the composition of government spending. This section breaks down the total expenditure into major functional categories. Use the interactive selector to see how priorities have shifted over the years.
                 </p>
             </div>
 
-            <div class="glass-card rounded-2xl p-6 md:p-8">
-                <div class="flex justify-between items-center mb-6">
-                    <div>
-                        <h3 class="text-lg font-semibold text-slate-800">Allocation Across Key Sectors</h3>
-                        <p class="text-sm text-slate-500">Comparative view (₹ Lakh Crores)</p>
+            <div class="glass-card rounded-2xl p-6">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 border-b border-warm-200 pb-4">
+                    <h3 class="text-xl font-semibold text-warm-800">Sectoral Breakdown</h3>
+                    
+                    <div class="flex items-center gap-3">
+                        <label for="yearSelector" class="text-sm font-medium text-warm-600">Select Fiscal Year:</label>
+                        <select id="yearSelector" class="bg-warm-50 border border-warm-300 text-warm-900 text-sm rounded-lg focus:ring-accent focus:border-accent block p-2.5 outline-none cursor-pointer">
+                            <option value="2025-26" selected>2025-26 (Latest)</option>
+                            <option value="2020-21">2020-21 (Pandemic)</option>
+                            <option value="2014-15">2014-15 (Baseline)</option>
+                        </select>
                     </div>
                 </div>
-                <div class="chart-container">
-                    <canvas id="compositionChart"></canvas>
-                </div>
-            </div>
-        </section>
 
-        <section id="deepdive" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16 pt-8">
-            <div class="mb-8">
-                <h2 class="text-2xl font-bold text-slate-800 mb-3 border-l-4 border-indigo-500 pl-3">Interactive Deep Dive: Policy Behind the Numbers</h2>
-                <p class="text-slate-600">
-                    Numbers alone only tell half the story. Select a specific sector from the dropdown below to isolate its budgetary trajectory over the decade. Alongside the customized chart, you will find qualitative insights explaining the major policy decisions, flagship schemes, and external events (like COVID-19) that drove these financial allocations.
-                </p>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div class="lg:col-span-1 glass-card rounded-2xl p-6 md:p-8 flex flex-col justify-start">
-                    <label for="sectorSelect" class="block text-sm font-medium text-slate-700 mb-2">Select Sector to Analyze:</label>
-                    <select id="sectorSelect" class="w-full bg-slate-50 border border-slate-300 text-slate-900 text-sm rounded-lg focus:ring-teal-500 focus:border-teal-500 block p-3 mb-6 transition-colors cursor-pointer outline-none">
-                        <option value="Infrastructure">Infrastructure (Roads & Rail)</option>
-                        <option value="Defense">Defense</option>
-                        <option value="Agriculture">Agriculture & Allied</option>
-                        <option value="Health">Health & Family Welfare</option>
-                        <option value="Education">Education</option>
-                    </select>
-
-                    <div id="insightBox" class="bg-indigo-50/50 rounded-xl p-5 border border-indigo-100">
-                        <h4 id="insightTitle" class="text-lg font-semibold text-indigo-900 mb-2">Infrastructure (Roads & Rail)</h4>
-                        <p id="insightText" class="text-sm text-slate-700 leading-relaxed">
-                            Loading insights...
-                        </p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                    <!-- CHART CONTAINER 3 -->
+                    <div class="chart-container" style="height: 350px;">
+                        <canvas id="sectorChart"></canvas>
                     </div>
                     
-                    <div class="mt-6 grid grid-cols-2 gap-4">
-                        <div class="bg-slate-50 rounded-lg p-4 border border-slate-100 text-center">
-                            <span class="block text-xs text-slate-500 uppercase font-semibold tracking-wider mb-1">2014 Allocation</span>
-                            <span id="statStart" class="text-xl font-bold text-slate-800">--</span>
-                        </div>
-                        <div class="bg-slate-50 rounded-lg p-4 border border-slate-100 text-center">
-                            <span class="block text-xs text-slate-500 uppercase font-semibold tracking-wider mb-1">2025 Allocation</span>
-                            <span id="statEnd" class="text-xl font-bold text-teal-600">--</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="lg:col-span-2 glass-card rounded-2xl p-6 md:p-8">
-                    <h3 id="deepDiveChartTitle" class="text-lg font-semibold text-slate-800 mb-6">Sector Trajectory</h3>
-                    <div class="chart-container">
-                        <canvas id="deepDiveChart"></canvas>
+                    <div class="space-y-6" id="sectorNarrative">
+                        <!-- Content populated by JS -->
                     </div>
                 </div>
             </div>
         </section>
+
+        <footer class="text-center pt-10 border-t border-warm-200 text-sm text-warm-500">
+            <p><a href="https://docs.google.com/document/d/13hk1fvdmLtlzV-wcvHtxrxM2Fo5QDOPM0ps1rkw7NS4/edit?usp=drive_link" class="nav-link:hover">Interactive Analysis generated for demonstration. Data represents approximate historical figures based on GoI Budget documents.</a></p>
+        </footer>
 
     </main>
 
-    <footer class="bg-slate-900 text-slate-400 py-8 border-t border-slate-800">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <p class="text-sm"><a href="https://docs.google.com/document/d/173Acq8jaX0Xrksh50B1tYlfK0ffyjThxSvoFw3NEFro/edit?usp=drive_link" class="hover:text-gray-700" >Source Report.</a></p>
-            <p class="text-xs mt-2 text-slate-500">Values are approximate representations in ₹ Lakh Crores for illustrative analytical purposes.</p>
-        </div>
-    </footer>
-
+    <!-- Application Logic (Vanilla JS + Chart.js) -->
     <script>
-        const rawData = {
-            labels: ['2014-15', '2015-16', '2016-17', '2017-18', '2018-19', '2019-20', '2020-21', '2021-22', '2022-23', '2023-24', '2024-25'],
-            totalBudget: [16.6, 17.7, 19.7, 21.4, 24.4, 26.8, 34.5, 37.9, 41.8, 45.0, 48.2],
-            totalGrowth: [0, 6.6, 11.2, 8.6, 14.0, 9.8, 28.7, 9.8, 10.2, 7.6, 7.1], 
-            sectors: {
-                'Infrastructure': {
-                    data: [1.8, 2.1, 2.4, 3.2, 4.0, 4.5, 5.1, 6.8, 8.4, 10.0, 11.1],
-                    color: '#0f766e', 
-                    bg: 'rgba(15, 118, 110, 0.2)',
-                    text: 'The standout sector of the decade. Recognizing that poor infrastructure bottlenecks growth, the government executed a massive, sustained push in capital expenditure. Heavy investments in the Ministry of Road Transport and Highways (MoRTH) and a complete overhaul of Railways funding (merging the Railway budget with the Union budget in 2017) have acted as the primary engine for economic stimulation, creating a significant multiplier effect.'
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            // --- DATA STORE ---
+            const labelsAllYears = ['14-15', '15-16', '16-17', '17-18', '18-19', '19-20', '20-21', '21-22', '22-23', '23-24', '24-25', '25-26'];
+            
+            // Expenditure in Lakh Crores (Approximate historical data)
+            const dataTotal = [16.63, 17.90, 19.75, 21.41, 23.15, 26.86, 35.09, 37.93, 41.93, 44.90, 48.20, 51.50];
+            const dataRev   = [14.66, 15.37, 16.90, 18.78, 20.07, 23.50, 30.83, 32.00, 34.59, 35.40, 37.09, 39.30];
+            const dataCap   = [1.97,  2.53,  2.85,  2.63,  3.08,  3.36,  4.26,  5.93,  7.34,  9.50,  11.11, 12.20];
+            
+            // Calculate YoY Growth for Total Expenditure
+            const dataYoY = dataTotal.map((val, index) => {
+                if(index === 0) return 0;
+                return Number((((val - dataTotal[index-1]) / dataTotal[index-1]) * 100).toFixed(1));
+            });
+
+            // Sectoral Data (Percentages approx)
+            const sectoralData = {
+                '2014-15': {
+                    labels: ['Interest Payments', 'Defence', 'Subsidies', 'Transfers to States', 'Central Schemes', 'Other Exp'],
+                    data: [20, 11, 12, 16, 10, 31],
+                    narrative: `
+                        <h4 class="text-lg font-bold text-warm-900">The 2014-15 Landscape</h4>
+                        <p class="text-warm-600 leading-relaxed">In the earlier part of the decade, a significant portion of the budget was consumed by mandatory obligations like <strong>Interest Payments</strong> and heavy <strong>Subsidies</strong> (fuel, fertilizer, food), leaving constrained fiscal space for infrastructure.</p>
+                        <ul class="mt-4 space-y-2 text-sm text-warm-700">
+                            <li><span class="text-accent font-bold">•</span> Subsidies accounted for ~12% of spending.</li>
+                            <li><span class="text-accent font-bold">•</span> Capital layout within 'Other Exp' was minimal.</li>
+                        </ul>`
                 },
-                'Defense': {
-                    data: [2.29, 2.46, 2.58, 2.59, 2.95, 3.18, 4.71, 4.78, 5.25, 5.93, 6.21],
-                    color: '#334155', 
-                    bg: 'rgba(51, 65, 85, 0.2)',
-                    text: 'Defense allocations have seen consistent absolute growth to modernize the armed forces and manage increasing geopolitical complexities. A major structural shift occurred midway through the decade with the "Atmanirbhar Bharat" (self-reliant India) initiative, which actively redirects capital procurement budgets towards domestic defense manufacturing, alongside heavy investments in border infrastructure.'
+                '2020-21': {
+                    labels: ['Interest Payments', 'Defence', 'Subsidies', 'Transfers to States', 'Central Schemes', 'Other Exp'],
+                    data: [19, 8, 18, 15, 12, 28],
+                    narrative: `
+                        <h4 class="text-lg font-bold text-warm-900">The Pandemic Response</h4>
+                        <p class="text-warm-600 leading-relaxed">2020-21 saw an unprecedented shock. The government drastically increased spending to save lives and livelihoods. Notice the massive spike in <strong>Subsidies</strong> (primarily free food grains) and social safety net schemes.</p>
+                        <ul class="mt-4 space-y-2 text-sm text-warm-700">
+                            <li><span class="text-accent font-bold">•</span> Subsidies ballooned to ~18% to fund PMGKAY.</li>
+                            <li><span class="text-accent font-bold">•</span> Health & welfare allocations surged temporarily.</li>
+                        </ul>`
                 },
-                'Agriculture': {
-                    data: [0.31, 0.25, 0.44, 0.51, 0.57, 1.30, 1.34, 1.23, 1.24, 1.25, 1.27],
-                    color: '#b45309', 
-                    bg: 'rgba(180, 83, 9, 0.2)',
-                    text: 'The trajectory shows a distinct, massive structural jump around 2019-2020. This was almost entirely driven by the introduction of PM-KISAN, a flagship direct benefit transfer (DBT) scheme providing income support to farmers. Since that massive recalibration of the baseline, funding has stabilized, with continued focus on rural credit, crop insurance, and agricultural infrastructure funds.'
-                },
-                'Health': {
-                    data: [0.35, 0.33, 0.39, 0.48, 0.54, 0.64, 0.82, 0.85, 0.86, 0.89, 0.90],
-                    color: '#be123c', 
-                    bg: 'rgba(190, 18, 60, 0.2)',
-                    text: 'Health spending saw gradual, incremental increases in the early half of the decade. The data clearly shows a sharp, reactive spike beginning in 2020-21 due to the COVID-19 pandemic response (vaccination drives, emergency health system packages). Crucially, post-pandemic, the baseline has not dropped back down, reflecting an enduring commitment to systemic upgrades via schemes like PM-ABHIM.'
-                },
-                'Education': {
-                    data: [0.68, 0.67, 0.72, 0.80, 0.83, 0.94, 0.85, 0.88, 1.04, 1.12, 1.20],
-                    color: '#4338ca', 
-                    bg: 'rgba(67, 56, 202, 0.2)',
-                    text: 'Education allocation has grown steadily, generally keeping pace with overall economic growth. The dip around the pandemic years reflects short-term fiscal reprioritization towards emergency health and welfare. Recent increases align with the rollout of the comprehensive National Education Policy (NEP) 2020, focusing on both foundational literacy and higher education infrastructure.'
+                '2025-26': {
+                    labels: ['Interest Payments', 'Defence', 'Subsidies', 'Transfers to States', 'Infrastructure & Schemes', 'Other Exp'],
+                    data: [20, 8, 7, 18, 22, 25],
+                    narrative: `
+                        <h4 class="text-lg font-bold text-warm-900">The Modern Mix</h4>
+                        <p class="text-warm-600 leading-relaxed">The latest budgets reflect a mature fiscal strategy. <strong>Subsidies</strong> have been rationalized heavily. The resulting savings, alongside robust tax collections, have been forcefully directed towards <strong>Infrastructure & Schemes</strong> (Roads, Railways, PLI).</p>
+                        <ul class="mt-4 space-y-2 text-sm text-warm-700">
+                            <li><span class="text-accent font-bold">•</span> Subsidies dropped to ~7%.</li>
+                            <li><span class="text-accent font-bold">•</span> Direct Infrastructure mapping takes the lion's share.</li>
+                            <li><span class="text-accent font-bold">•</span> Interest payments remain a structural rigidity.</li>
+                        </ul>`
                 }
-            }
-        };
+            };
 
-        Chart.defaults.font.family = "'Inter', sans-serif";
-        Chart.defaults.color = '#64748b';
-        Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(15, 23, 42, 0.9)';
-        Chart.defaults.plugins.tooltip.padding = 12;
-        Chart.defaults.plugins.tooltip.cornerRadius = 8;
+            // --- COMMON CHART OPTIONS ---
+            Chart.defaults.font.family = "'Inter', sans-serif";
+            Chart.defaults.color = '#57534e'; // warm-600
 
-        const ctxMacro = document.getElementById('macroChart').getContext('2d');
-        new Chart(ctxMacro, {
-            type: 'bar',
-            data: {
-                labels: rawData.labels,
-                datasets: [
-                    {
-                        type: 'line',
-                        label: 'Y-o-Y Growth (%)',
-                        data: rawData.totalGrowth,
-                        borderColor: '#b45309',
-                        backgroundColor: '#b45309',
-                        borderWidth: 3,
-                        tension: 0.4,
-                        yAxisID: 'y1',
-                        pointRadius: 4,
-                        pointBackgroundColor: '#fff'
-                    },
-                    {
-                        type: 'bar',
-                        label: 'Total Budget (₹ Lakh Cr)',
-                        data: rawData.totalBudget,
-                        backgroundColor: '#0f766e',
-                        borderRadius: 4,
-                        yAxisID: 'y'
-                    }
-                ]
-            },
-            options: {
+            const commonOptions = {
                 responsive: true,
-                maintainAspectRatio: false,
-                interaction: { mode: 'index', intersect: false },
-                scales: {
-                    x: { grid: { display: false } },
-                    y: { 
-                        type: 'linear', 
-                        display: true, 
-                        position: 'left',
-                        title: { display: true, text: '₹ Lakh Crores' },
-                        grid: { color: 'rgba(0,0,0,0.05)' }
-                    },
-                    y1: { 
-                        type: 'linear', 
-                        display: true, 
-                        position: 'right',
-                        title: { display: true, text: 'Growth %' },
-                        grid: { drawOnChartArea: false }
-                    }
-                }
-            }
-        });
-
-        const ctxComp = document.getElementById('compositionChart').getContext('2d');
-        new Chart(ctxComp, {
-            type: 'bar',
-            data: {
-                labels: rawData.labels,
-                datasets: [
-                    { label: 'Infrastructure', data: rawData.sectors['Infrastructure'].data, backgroundColor: rawData.sectors['Infrastructure'].color },
-                    { label: 'Defense', data: rawData.sectors['Defense'].data, backgroundColor: rawData.sectors['Defense'].color },
-                    { label: 'Agriculture', data: rawData.sectors['Agriculture'].data, backgroundColor: rawData.sectors['Agriculture'].color },
-                    { label: 'Education', data: rawData.sectors['Education'].data, backgroundColor: rawData.sectors['Education'].color },
-                    { label: 'Health', data: rawData.sectors['Health'].data, backgroundColor: rawData.sectors['Health'].color }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    x: { stacked: true, grid: { display: false } },
-                    y: { 
-                        stacked: true, 
-                        title: { display: true, text: '₹ Lakh Crores' },
-                        grid: { color: 'rgba(0,0,0,0.05)' }
-                    }
-                },
+                maintainAspectRatio: false, // Critical for custom container sizing
                 plugins: {
-                    tooltip: { mode: 'index', intersect: false }
+                    legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } },
+                    tooltip: {
+                        backgroundColor: 'rgba(28, 25, 23, 0.9)', // warm-900
+                        titleFont: { size: 14, weight: 'bold' },
+                        bodyFont: { size: 13 },
+                        padding: 12,
+                        cornerRadius: 8,
+                        displayColors: true
+                    }
                 }
-            }
-        });
+            };
 
-        const ctxDeepDive = document.getElementById('deepDiveChart').getContext('2d');
-        let deepDiveChartObj = new Chart(ctxDeepDive, {
-            type: 'line',
-            data: {
-                labels: rawData.labels,
-                datasets: [{
-                    label: 'Allocation',
-                    data: rawData.sectors['Infrastructure'].data,
-                    borderColor: rawData.sectors['Infrastructure'].color,
-                    backgroundColor: rawData.sectors['Infrastructure'].bg,
+            // --- CHART 1: TREND CHART ---
+            const ctxTrend = document.getElementById('trendChart').getContext('2d');
+            let trendChart = new Chart(ctxTrend, {
+                type: 'line',
+                data: {
+                    labels: labelsAllYears,
+                    datasets: [{
+                        label: 'Total Exp (₹ L Cr)',
+                        data: dataTotal,
+                        borderColor: '#d97706', // accent
+                        backgroundColor: 'rgba(217, 119, 6, 0.1)',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#d97706',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    ...commonOptions,
+                    scales: {
+                        y: { 
+                            beginAtZero: true, 
+                            grid: { color: '#e7e5e4', borderDash: [5, 5] },
+                            title: { display: true, text: '₹ Lakh Crores' }
+                        },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            // Trend Chart Interactivity
+            const btnTrendAbs = document.getElementById('btnTrendAbs');
+            const btnTrendYoY = document.getElementById('btnTrendYoY');
+            const trendContextText = document.getElementById('trendContextText');
+
+            btnTrendAbs.addEventListener('click', () => {
+                btnTrendAbs.classList.replace('text-warm-600', 'text-accent-dark');
+                btnTrendAbs.classList.replace('hover:text-warm-900', 'bg-white');
+                btnTrendAbs.classList.add('shadow-sm');
+                
+                btnTrendYoY.classList.replace('bg-white', 'hover:text-warm-900');
+                btnTrendYoY.classList.replace('shadow-sm', 'text-warm-600');
+                btnTrendYoY.classList.remove('text-accent-dark');
+
+                trendChart.data.datasets[0] = {
+                    label: 'Total Exp (₹ L Cr)',
+                    data: dataTotal,
+                    borderColor: '#d97706',
+                    backgroundColor: 'rgba(217, 119, 6, 0.1)',
                     borderWidth: 3,
                     fill: true,
-                    tension: 0.4,
-                    pointRadius: 5,
-                    pointBackgroundColor: '#fff',
-                    pointBorderWidth: 2
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    x: { grid: { display: false } },
-                    y: { 
-                        title: { display: true, text: '₹ Lakh Crores' },
-                        grid: { color: 'rgba(0,0,0,0.05)' },
-                        beginAtZero: true
-                    }
+                    tension: 0.3
+                };
+                trendChart.options.scales.y.title.text = '₹ Lakh Crores';
+                trendChart.update();
+                trendContextText.innerText = "Showing absolute expenditure in ₹ Lakh Crores. Notice the steep acceleration starting 2020-21.";
+            });
+
+            btnTrendYoY.addEventListener('click', () => {
+                btnTrendYoY.classList.replace('text-warm-600', 'text-accent-dark');
+                btnTrendYoY.classList.replace('hover:text-warm-900', 'bg-white');
+                btnTrendYoY.classList.add('shadow-sm');
+                
+                btnTrendAbs.classList.replace('bg-white', 'hover:text-warm-900');
+                btnTrendAbs.classList.replace('shadow-sm', 'text-warm-600');
+                btnTrendAbs.classList.remove('text-accent-dark');
+
+                trendChart.data.datasets[0] = {
+                    type: 'bar',
+                    label: 'YoY Growth (%)',
+                    data: dataYoY,
+                    backgroundColor: '#78716c', // warm-500
+                    borderRadius: 4
+                };
+                trendChart.options.scales.y.title.text = 'Percentage (%)';
+                trendChart.update();
+                trendContextText.innerText = "Showing Year-on-Year growth. The ~30% spike in 20-21 reflects the massive COVID-19 stimulus.";
+            });
+
+
+            // --- CHART 2: REVENUE VS CAPITAL (Stacked Bar) ---
+            const ctxQuality = document.getElementById('qualityChart').getContext('2d');
+            new Chart(ctxQuality, {
+                type: 'bar',
+                data: {
+                    labels: labelsAllYears,
+                    datasets: [
+                        {
+                            label: 'Capital Exp (Asset Creation)',
+                            data: dataCap,
+                            backgroundColor: '#b45309', // accent-dark
+                            stack: 'Stack 0',
+                            borderRadius: { topLeft: 4, topRight: 4 }
+                        },
+                        {
+                            label: 'Revenue Exp (Running Costs)',
+                            data: dataRev,
+                            backgroundColor: '#d6d3d1', // warm-300
+                            stack: 'Stack 0',
+                            borderRadius: { bottomLeft: 4, bottomRight: 4 }
+                        }
+                    ]
                 },
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) { return '₹ ' + context.parsed.y + ' Lakh Cr'; }
+                options: {
+                    ...commonOptions,
+                    scales: {
+                        x: { stacked: true, grid: { display: false } },
+                        y: { 
+                            stacked: true, 
+                            beginAtZero: true,
+                            grid: { color: '#e7e5e4', borderDash: [5, 5] },
+                            title: { display: true, text: '₹ Lakh Crores' }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) label += ': ';
+                                    if (context.parsed.y !== null) {
+                                        label += '₹' + context.parsed.y + ' L Cr';
+                                        // Calculate percentage
+                                        const total = context.chart.data.datasets[0].data[context.dataIndex] + context.chart.data.datasets[1].data[context.dataIndex];
+                                        const percentage = Math.round((context.parsed.y / total) * 100);
+                                        label += ` (${percentage}%)`;
+                                    }
+                                    return label;
+                                }
+                            }
                         }
                     }
                 }
-            }
+            });
+
+
+            // --- CHART 3: SECTORAL BREAKDOWN (Doughnut) ---
+            const ctxSector = document.getElementById('sectorChart').getContext('2d');
+            let sectorChart = new Chart(ctxSector, {
+                type: 'doughnut',
+                data: {
+                    labels: sectoralData['2025-26'].labels,
+                    datasets: [{
+                        data: sectoralData['2025-26'].data,
+                        backgroundColor: [
+                            '#44403c', // warm-700 (Interest)
+                            '#a8a29e', // warm-400 (Defence)
+                            '#fcd34d', // accent-light (Subsidies)
+                            '#d6d3d1', // warm-300 (States)
+                            '#d97706', // accent (Infra)
+                            '#e7e5e4'  // warm-200 (Other)
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#ffffff',
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    ...commonOptions,
+                    cutout: '65%',
+                    plugins: {
+                        legend: { position: 'right', labels: { boxWidth: 15 } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ' ' + context.label + ': ' + context.parsed + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Set initial narrative
+            document.getElementById('sectorNarrative').innerHTML = sectoralData['2025-26'].narrative;
+
+            // Sector Chart Interactivity
+            const yearSelector = document.getElementById('yearSelector');
+            yearSelector.addEventListener('change', function(e) {
+                const selectedYear = e.target.value;
+                const newData = sectoralData[selectedYear];
+                
+                // Update Chart
+                sectorChart.data.labels = newData.labels;
+                sectorChart.data.datasets[0].data = newData.data;
+                sectorChart.update();
+
+                // Update Narrative Text with fade effect
+                const narrativeContainer = document.getElementById('sectorNarrative');
+                narrativeContainer.style.opacity = 0;
+                setTimeout(() => {
+                    narrativeContainer.innerHTML = newData.narrative;
+                    narrativeContainer.style.opacity = 1;
+                    narrativeContainer.style.transition = 'opacity 0.3s ease-in-out';
+                }, 200);
+            });
+
+            // Smooth scrolling for navigation links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    document.querySelector(this.getAttribute('href')).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                });
+            });
+
         });
-
-        const sectorSelect = document.getElementById('sectorSelect');
-        const insightTitle = document.getElementById('insightTitle');
-        const insightText = document.getElementById('insightText');
-        const statStart = document.getElementById('statStart');
-        const statEnd = document.getElementById('statEnd');
-        const chartTitle = document.getElementById('deepDiveChartTitle');
-
-        function updateDeepDive(sectorName) {
-            const dataObj = rawData.sectors[sectorName];
-            
-            insightTitle.innerText = sectorName;
-            insightText.innerText = dataObj.text;
-            
-            statStart.innerText = '₹ ' + dataObj.data[0] + ' LCr';
-            statEnd.innerText = '₹ ' + dataObj.data[dataObj.data.length - 1] + ' LCr';
-            
-            chartTitle.innerText = sectorName + ' Allocation Trajectory';
-
-            deepDiveChartObj.data.datasets[0].data = dataObj.data;
-            deepDiveChartObj.data.datasets[0].borderColor = dataObj.color;
-            deepDiveChartObj.data.datasets[0].backgroundColor = dataObj.bg;
-            deepDiveChartObj.update();
-        }
-
-        sectorSelect.addEventListener('change', (e) => {
-            updateDeepDive(e.target.value);
-        });
-
-        updateDeepDive('Infrastructure');
-
     </script>
 </body>
 </html>
